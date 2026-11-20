@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "fudepan-tools": {
+      "command": "node",
+      "args": [
+        "./mcp/fudepan-tools/dist/index.js"
+      ],
+      "env": {
+        "FUDEPAN_SUPABASE_URL": "${FUDEPAN_SUPABASE_URL}",
+        "FUDEPAN_SUPABASE_SERVICE_ROLE_KEY": "${FUDEPAN_SUPABASE_SERVICE_ROLE_KEY}",
+        "FUDEPAN_RESEND_API_KEY": "${FUDEPAN_RESEND_API_KEY}"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "web-search": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@kiro/mcp-web-search"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "web_search"
+      ]
+    },
+    "fetch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@kiro/mcp-fetch"
+      ],
+      "disabled": false,
+      "autoApprove": [
+        "fetch"
+      ]
+    }
+  }
+}
