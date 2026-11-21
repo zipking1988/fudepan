@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+/*
+ * Fudepan palette: paper, warm stone, near-black ink, and one restrained warm accent.
+ * Contrast on paper (#F7F4EE):
+ *   ink 17:1 · graphite 6.2:1 · ember-ink 5.4:1 · ember 4.1:1 (large text and marks only)
+ * Contrast on night (#141412):
+ *   paper 17:1 · ember-light 6.2:1
+ */
+@theme {
+  --color-paper: #f7f4ee;
+  --color-paper-bright: #fbf9f4;
+  --color-stone: #e8e3da;
+  --color-stone-deep: #d6cfc2;
+  --color-ink: #141412;
+  --color-graphite: #5e5a52;
+  --color-ember: #c4552f;
+  --color-ember-ink: #a9431f;
+  --color-ember-light: #e07a55;
+  --color-moss: #1f3d33;
+  --color-night: #141412;
+
+  --ease-paper: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-instrument-serif), "Times New Roman", serif;
+  --font-hand: var(--font-caveat), "Bradley Hand", cursive;
+}
+
+:root {
+  color-scheme: light;
+  --focus-ring: #1f3d33;
+  /* Paper grain, generated rather than downloaded. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0 0.06 0 0 0 0.55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Larger base text for older adults; all rem-based sizes scale with it. */
+html {
+  font-size: 112.5%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-ember) 28%, transparent);
+  color: var(--color-ink);
+}
+
+/* Always-visible keyboard focus. */
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* Smooth in-page jumps only when motion is welcome. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
