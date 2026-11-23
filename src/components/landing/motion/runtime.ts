@@ -1,6 +1,5 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
 
 import { DISTANCE, DURATION, EASE_GSAP } from "./tokens";
 
@@ -9,13 +8,15 @@ type Cleanup = () => void;
 const QUERIES = {
   motion: "(prefers-reduced-motion: no-preference)",
   finePointer: "(hover: hover) and (pointer: fine)",
-  desktop: "(min-width: 1024px)",
 };
 
 /**
- * Starts every page-wide behavior: the navigation capsule, smooth scrolling,
- * magnetic buttons, and the cursor follower. Each one is set up only where it
- * helps (fine pointer, motion allowed) and torn down when that changes.
+ * Starts every page-wide behavior: the navigation capsule, magnetic buttons,
+ * and the cursor follower. Each one is set up only where it helps (fine
+ * pointer, motion allowed) and torn down when that changes.
+ *
+ * Scrolling is left entirely to the browser: nothing here pins a section,
+ * smooths or redirects the wheel, or listens to scroll except passively.
  */
 export function startMotion(root: HTMLElement): Cleanup {
   gsap.registerPlugin(ScrollTrigger);
@@ -23,11 +24,9 @@ export function startMotion(root: HTMLElement): Cleanup {
   const stopNav = navigation(root);
 
   mm.add(QUERIES, (context) => {
-    const { motion, finePointer, desktop } = context.conditions ?? {};
+    const { motion, finePointer } = context.conditions ?? {};
     const cleanups: Cleanup[] = [];
-    if (motion && desktop) cleanups.push(howItWorks(root));
     if (motion && finePointer) {
-      cleanups.push(smoothScroll());
       cleanups.push(magneticButtons(root));
       cleanups.push(cursorFollower(root));
     }
@@ -70,136 +69,6 @@ function navigation(root: HTMLElement): Cleanup {
     trigger.kill();
     header.removeEventListener("focusin", onFocus);
     header.classList.remove("is-compact", "is-tucked", "is-top");
-  };
-}
-
-/* ------------------------------------------------------------------------ */
-/* How it works: pinned, one picture through three steps, tied to scroll.    */
-/* ------------------------------------------------------------------------ */
-function howItWorks(root: HTMLElement): Cleanup {
-  const section = root.querySelector<HTMLElement>("[data-how]");
-  const pin = section?.querySelector<HTMLElement>("[data-how-pin]");
-  const scene = section?.querySelector<HTMLElement>(".how__stage [data-scene]");
-  if (!section || !pin || !scene) return () => {};
-  const q = <T extends Element = HTMLElement>(sel: string) => [...scene.querySelectorAll<T>(sel)];
-  const one = (sel: string) => scene.querySelector<HTMLElement>(sel);
-  const steps = [...section.querySelectorAll<HTMLElement>("[data-how-step]")];
-  const fill = section.querySelector<HTMLElement>("[data-how-fill]");
-
-  section.classList.add("how--pinned");
-  const phone = one("[data-scene-phone]");
-  const screens = [1, 2, 3].map((n) => one(`[data-screen="${n}"]`));
-  const flash = one("[data-scene-flash]");
-  const scan = one("[data-scene-scan]");
-  const hits = q("[data-scene-hit]");
-  const asks = q("[data-scene-ask]");
-  const rows = q("[data-scene-row]");
-  const people = q("[data-scene-person]");
-  const approved = one("[data-scene-approved]");
-  const check = scene.querySelector<SVGPathElement>("[data-scene-check]");
-  const ease = EASE_GSAP;
-
-  let current = -1;
-  const setStep = (index: number) => {
-    if (index === current) return;
-    current = index;
-    steps.forEach((el, i) => el.classList.toggle("is-current", i === index));
-  };
-
-  const tl = gsap.timeline({
-    defaults: { ease, duration: 0.5 },
-    scrollTrigger: {
-      trigger: pin,
-      start: "top top",
-      end: "+=210%",
-      pin: true,
-      scrub: true,
-      onUpdate: (self) => {
-        setStep(self.progress < 0.34 ? 0 : self.progress < 0.67 ? 1 : 2);
-        fill?.style.setProperty("--p", self.progress.toFixed(4));
-      },
-    },
-  });
-  // Step 1: the phone comes up in front of the fridge and takes the picture.
-  tl.fromTo(
-    phone,
-    { yPercent: 70, rotate: 7, opacity: 0 },
-    { yPercent: 0, rotate: 0, opacity: 1, duration: 0.6 },
-    0,
-  )
-    .fromTo(screens[0], { opacity: 1 }, { opacity: 1, duration: 0.01 }, 0)
-    .fromTo(screens.slice(1), { opacity: 0 }, { opacity: 0, duration: 0.01 }, 0)
-    .fromTo(flash, { opacity: 0 }, { opacity: 0.9, duration: 0.08, ease: "none" }, 0.72)
-    .to(flash, { opacity: 0, duration: 0.2, ease: "none" }, 0.8)
-    // Step 2: the screen shows Fudepan reading the note and asking.
-    .to(screens[0], { opacity: 0, duration: 0.25 }, 1.0)
-    .to(screens[1], { opacity: 1, duration: 0.25 }, 1.05)
-    .fromTo(
-      scan,
-      { yPercent: -100, opacity: 0 },
-      { yPercent: 900, opacity: 1, duration: 0.6, ease: "none" },
-      1.15,
-    )
-    .to(scan, { opacity: 0, duration: 0.1 }, 1.7)
-    .fromTo(hits, { "--hit": 0 }, { "--hit": 1, duration: 0.2, stagger: 0.15 }, 1.3)
-    .fromTo(
-      asks,
-      { opacity: 0, scale: 0.6, y: 12 },
-      { opacity: 1, scale: 1, y: 0, duration: 0.35, stagger: 0.12 },
-      1.55,
-    )
-    // Step 3: a plan with people and times, then the family approves.
-    .to(asks, { opacity: 0, y: -8, duration: 0.25 }, 2.0)
-    .to(screens[1], { opacity: 0, duration: 0.25 }, 2.0)
-    .to(screens[2], { opacity: 1, duration: 0.25 }, 2.05)
-    .fromTo(rows, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.07 }, 2.15)
-    .fromTo(
-      people,
-      { opacity: 0, y: 12, scale: 0.8 },
-      { opacity: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.07 },
-      2.4,
-    )
-    .fromTo(
-      approved,
-      { opacity: 0, scale: 1.5 },
-      { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" },
-      2.65,
-    )
-    .fromTo(check, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.25 }, 2.75)
-    .to({}, { duration: 0.25 }, 3.0);
-
-  return () => {
-    tl.scrollTrigger?.kill();
-    tl.kill();
-    section.classList.remove("how--pinned");
-    for (const el of steps) el.classList.toggle("is-current", el === steps[0]);
-    fill?.style.removeProperty("--p");
-    gsap.set(
-      [phone, flash, scan, ...hits, ...asks, ...rows, ...people, approved, check, ...screens],
-      {
-        clearProps: "all",
-      },
-    );
-  };
-}
-
-/* ------------------------------------------------------------------------ */
-/* Smooth scrolling, driven by the GSAP ticker so ScrollTrigger stays in sync */
-/* ------------------------------------------------------------------------ */
-function smoothScroll(): Cleanup {
-  const header = document.querySelector<HTMLElement>("[data-site-header]");
-  const lenis = new Lenis({
-    lerp: 0.12,
-    anchors: { offset: -((header?.offsetHeight ?? 72) + 16) },
-  });
-  lenis.on("scroll", ScrollTrigger.update);
-  const tick = (time: number) => lenis.raf(time * 1000);
-  gsap.ticker.add(tick);
-  gsap.ticker.lagSmoothing(0);
-  return () => {
-    gsap.ticker.remove(tick);
-    gsap.ticker.lagSmoothing(500, 33);
-    lenis.destroy();
   };
 }
 

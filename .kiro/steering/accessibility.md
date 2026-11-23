@@ -15,11 +15,21 @@ Fudepan must be usable by older adults, busy caregivers, and people with limited
 
 ## Risk communication
 
-Use both color and text:
+Use both color and text.
+
+Risk level labels:
 
 - Low risk: “Low priority”
 - Medium risk: “Needs attention”
-- High risk: “Requires confirmation”
+- High risk: “High risk”
+
+Approval and completion labels (shown separately from the risk level):
+
+- Approval pending: “Requires confirmation”
+- Approved: “Confirmed”
+- Completed: “Done”
+
+Use “Requires confirmation” only while approval is pending, never as a risk level label.
 
 Never show only a red icon without an explanation.
 

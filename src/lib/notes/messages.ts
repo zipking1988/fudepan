@@ -30,7 +30,7 @@ export const NOTE_UPLOAD_MESSAGES: Record<NoteUploadErrorCode, string> = {
   invalid_request: "Something went wrong with this upload. Reload the page and try again.",
   not_member: "You can only add notes to a household you belong to.",
   not_allowed:
-    "Your role in this household lets you read notes, not add them. Ask a family caregiver to upload the photo.",
+    "This account cannot add notes to this household. Ask a family caregiver to upload the photo.",
   too_many_pending:
     "Several of your uploads did not finish. Wait a few hours for them to clear, then try again.",
   unavailable: "Fudepan could not finish the upload just now. Wait a minute, then press Try again.",

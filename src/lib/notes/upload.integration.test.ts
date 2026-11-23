@@ -479,20 +479,14 @@ describe("cross-household access", () => {
 });
 
 describe("audit trail", () => {
-  it("records a care recipient's refused upload", async () => {
+  it("lets a care recipient prepare an upload", async () => {
     const result = await serviceFor(people.mom).prepare(people.mom, {
       householdId: HOUSEHOLD_A,
       contentType: "image/png",
       sizeBytes: PNG.length,
     });
-    expect(result).toMatchObject({ ok: false, error: { code: "not_allowed" } });
-    expect((await auditsFor(HOUSEHOLD_A)).at(-1)).toMatchObject({
-      event_type: "note.upload_failed",
-      actor_id: people.mom.id,
-      payload: { stage: "prepare", reason: "role_not_allowed" },
-    });
+    expect(result.ok).toBe(true);
   });
-
   it("removes the stored image and audits when saving the note fails", async () => {
     const prepared = await uploadAs(people.kenta, PNG);
     // Kenta leaves the household between uploading and saving: the database refuses the note.

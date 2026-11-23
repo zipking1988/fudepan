@@ -1,4 +1,5 @@
 import "../app.css";
+import { appFontClasses } from "../app-fonts";
 
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -11,7 +12,7 @@ import { signOut } from "../login/actions";
  */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${appFontClasses}`} data-buttons="arrow">
       <a href="#main" className="app-skip">
         Skip to main content
       </a>

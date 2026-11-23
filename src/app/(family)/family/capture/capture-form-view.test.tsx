@@ -1,0 +1,98 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it } from "vitest";
+import { createTranslator } from "@/lib/i18n/messages";
+import type { UploadState } from "@/lib/notes/upload-state";
+import { CaptureFormView, type CaptureFile } from "./capture-form-view";
+
+const photo: CaptureFile = { name: "IMG_1.jpg", size: 1024 };
+const tr = createTranslator("en");
+
+function render(state: UploadState<CaptureFile>, previewUrl: string | null = null) {
+  return renderToStaticMarkup(<CaptureFormView state={state} tr={tr} previewUrl={previewUrl} />);
+}
+
+function visibleText(html: string): string {
+  return html.replace(/<noscript>.*?<\/noscript>/g, "").replace(/<[^>]+>/g, " ");
+}
+
+const PRIVACY = "Your photo will be sent to ai&amp; to be read and is visible to authorized household members";
+
+describe("capture screen markup", () => {
+  it("offers the rear camera as the primary control and a plain file input as the alternative", () => {
+    const html = render({ status: "idle", file: null });
+    const camera = html.match(/<input id="capture-camera"[^>]*>/)?.[0] ?? "";
+    expect(camera).toContain('capture="environment"');
+    expect(camera).toContain('accept="image/*"');
+    const other = html.match(/<input id="capture-choose"[^>]*>/)?.[0] ?? "";
+    expect(other).not.toContain("capture=");
+    expect(html).toMatch(/<label for="capture-camera"[^>]*>Take a photo of the note/);
+  });
+
+  it("never says 'upload' in visible text, in any state", () => {
+    const states: UploadState<CaptureFile>[] = [
+      { status: "idle", file: null },
+      { status: "idle", file: photo },
+      { status: "validating", file: photo },
+      { status: "uploading", file: photo },
+      { status: "uploaded", file: null, noteId: "n1" },
+      { status: "failed", file: photo, error: { code: "upload_failed", message: "x" } },
+    ];
+    for (const s of states) expect(visibleText(render(s, "blob:x")).toLowerCase()).not.toContain("upload");
+  });
+
+  it("shows the preview with alt text, the ai& sentence, and one confirm button before sending", () => {
+    const html = render({ status: "idle", file: photo }, "blob:preview");
+    expect(html).toContain('src="blob:preview"');
+    expect(html).toContain('alt="The photo of your note, ready to send"');
+    expect(html).toContain(PRIVACY);
+    expect(html.match(/<button type="submit"[^>]*>Send to my family<\/button>/)).not.toBeNull();
+    expect(html).not.toContain("Sent to your family");
+  });
+
+  it("shows no privacy sentence or confirm button before a photo is chosen", () => {
+    const html = render({ status: "idle", file: null });
+    expect(html).not.toContain("ai&amp;");
+    expect(html).not.toContain('type="submit"');
+  });
+
+  it("announces checking and sending in a status region and disables the button", () => {
+    const checking = render({ status: "validating", file: photo }, "blob:p");
+    expect(checking).toMatch(/<p role="status"[^>]*>Checking the photo…<\/p>/);
+    const sending = render({ status: "uploading", file: photo }, "blob:p");
+    expect(sending).toMatch(/<p role="status"[^>]*>Sending your photo\./);
+    expect(sending).toMatch(/<button type="submit" class="app-button" disabled/);
+  });
+
+  it("shows an alert with plain words and 'Try again' while keeping the photo", () => {
+    const html = render(
+      { status: "failed", file: photo, error: { code: "upload_failed", message: "Technical text" } },
+      "blob:p",
+    );
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("Your photo was not sent");
+    expect(html).not.toContain("Technical text");
+    expect(html).toMatch(/<button type="submit"[^>]*>Try again<\/button>/);
+    expect(html).toContain('src="blob:p"');
+  });
+
+  it("names a photo problem and offers no retry of the same photo", () => {
+    const html = render({
+      status: "failed",
+      file: photo,
+      error: { code: "too_large", message: "This photo is larger than the 10 MB limit." },
+    });
+    expect(html).toContain("This photo is larger than the 10 MB limit.");
+    expect(html).not.toContain('type="submit"');
+  });
+
+  it("shows 'Sent to your family' only in the sent state", () => {
+    const sent = render({ status: "uploaded", file: null, noteId: "n1" });
+    expect(sent).toContain("Sent to your family. You&#x27;re done.");
+    expect(sent).toContain('href="/family/events/n1"');
+    expect(sent).toContain("Take another photo");
+    for (const s of ["idle", "validating", "uploading"] as const) {
+      const file = s === "idle" ? null : photo;
+      expect(render({ status: s, file } as UploadState<CaptureFile>)).not.toContain("Sent to your family");
+    }
+  });
+});

@@ -1,4 +1,5 @@
 import "../app.css";
+import { appFontClasses } from "../app-fonts";
 
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${appFontClasses}`} data-buttons="arrow">
       <header className="app-header">
         <Link href="/" className="app-wordmark">
           Fudepan

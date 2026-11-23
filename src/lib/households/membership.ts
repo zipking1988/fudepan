@@ -35,12 +35,12 @@ export type Membership = {
 };
 
 /**
- * Care recipients have read-only access (data-privacy steering): they can see
- * and understand notes, but a caregiver uploads them. The database enforces the
- * same rule in private.can_upload_notes().
+ * Every active member may add a note, including the care recipient, who takes the photo
+ * themselves (family-shared-care Requirement 1). The database enforces the same rule in
+ * private.can_upload_notes(). The role argument is kept so a future restriction stays one edit.
  */
 export function canUploadNotes(role: HouseholdRole): boolean {
-  return role !== "care_recipient";
+  return isHouseholdRole(role);
 }
 
 export type HouseholdChoice =

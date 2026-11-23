@@ -7,7 +7,7 @@ import { ANCHOR_EVENT } from "./motion/tokens";
 /**
  * Keeps in-page links (#sample-draft, #how-it-works, ...) usable from the
  * keyboard: after the jump, focus moves to the target so Tab continues from
- * there. Scrolling itself stays native (or Lenis), and the fixed header is
+ * there. Scrolling itself stays native and is never intercepted, and the fixed header is
  * cleared by `scroll-margin-top` in landing.css. Without JavaScript the links
  * still scroll to the right place.
  */

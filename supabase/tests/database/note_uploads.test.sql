@@ -100,14 +100,14 @@ select ok(
   'Reservations outlive the 2-hour signed upload token'
 );
 
-select throws_ok(
+-- Changed by task 12.1 (Requirement 1.4): the care recipient may now take the photo.
+select lives_ok(
   $$ select public.reserve_note_upload(
        'f1000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001',
        'd1000000-0000-4000-8000-000000000001',
        'd0000000-0000-4000-8000-000000000001/f1000000-0000-4000-8000-000000000002/1763700000000-note.png',
        'image/png', 2048) $$,
-  'P0001', 'not_allowed',
-  'The care recipient (read-only) cannot reserve an upload'
+  'The care recipient can reserve an upload'
 );
 
 select throws_ok(

@@ -49,6 +49,12 @@ export type DraftTask = {
   title: string;
   owner: string | null;
   due: string;
+  /** Says what `due` is, e.g. the family's own deadline, so it is never read as the appointment time. */
+  dueLabel?: string;
+  /** The actual appointment time, kept apart from `due`. "To be confirmed" until a person adds it. */
+  appointment?: string;
+  /** Shown on the card: the task cannot be marked done before a family member approves it. */
+  gate?: string;
   risk: RiskLevel;
   /** What the note leaves out. Fudepan asks instead of guessing. */
   question?: string;
@@ -65,8 +71,11 @@ export const DRAFT = {
       title: "Confirm the hospital visit",
       owner: "Misa",
       due: "Wed 6 PM",
+      dueLabel: "Family-set confirmation deadline",
+      appointment: "To be confirmed",
+      gate: "It can’t be marked done until a family member approves it.",
       risk: "high",
-      question: "Which hospital? What time?",
+      question: "Which hospital? What time is the appointment?",
     },
     {
       id: "medicine",
@@ -94,6 +103,8 @@ export const DRAFT = {
   ] satisfies DraftTask[],
   unowned: "No owner yet",
   missing: "Missing:",
+  appointmentLabel: "Appointment time",
+  gateLabel: "Approval first:",
   hint: "Tap a task to see where it came from.",
   footer: "Nothing happens until your family approves it.",
   replay: "Replay",
@@ -144,11 +155,13 @@ const DONE = at("Wed", 21, 2);
 const PROOF = at("Wed", 21, 4);
 
 export const FOLLOW_UP = {
-  title: "If nobody responds, Fudepan follows up.",
-  lede: "Every important task has a backup person and a time to escalate. Nothing quietly expires, and everything goes into your family’s record.",
+  title: "If nobody responds, the task is escalated, not forgotten.",
+  lede: "Every important task has a backup person and a time to escalate. When that time passes, Fudepan marks the task as escalated and names the backup person in your family’s record. Nothing quietly expires.",
+  disclaimer:
+    "This is a simulated example. The local Alpha build sends no notifications: reminders and escalations are only recorded in the family’s timeline.",
   points: [
-    "A reminder goes to the person responsible.",
-    "If they don’t answer in time, the backup person is asked.",
+    "A reminder for the person responsible is recorded.",
+    "If they don’t respond in time, the task is escalated to the backup person.",
     "Who agreed, when, and the proof are saved for the whole family to see.",
   ],
   task: {
@@ -173,7 +186,7 @@ export const FOLLOW_UP = {
     proof: "Proof",
     onTime: "Done on time",
     late: "Done late",
-    log: "What happened",
+    log: "What was recorded (simulated example)",
   },
   log: [
     {
@@ -182,16 +195,21 @@ export const FOLLOW_UP = {
       kind: "approval",
       status: "Approved",
     },
-    { at: at("Wed", 20, 0), text: "Reminder sent to Misa", kind: "reminder", status: "No reply" },
+    {
+      at: at("Wed", 20, 0),
+      text: "Reminder for Misa recorded (not sent)",
+      kind: "reminder",
+      status: "Simulated",
+    },
     {
       at: at("Wed", 20, 30),
-      text: "Asked Kenta, the backup",
+      text: "No reply by the escalation time. Escalated to Kenta, the backup",
       kind: "handoff",
-      status: "Delivered",
+      status: "Recorded",
     },
     {
       at: at("Wed", 20, 41),
-      text: "Kenta: “I’ll put it in her bag tonight.”",
+      text: "Kenta saw it in Fudepan: “I’ll put it in her bag tonight.”",
       kind: "accepted",
       status: "Accepted",
     },
@@ -256,6 +274,56 @@ export const AUDIENCE = {
 export const KIRO = {
   title: "Built with Kiro",
   text: "Written specs, safety rules, and automated checks keep every change to Fudepan within the rules above.",
+  /**
+   * One rule traced from the Kiro spec to the code that enforces it and the
+   * tests that check it. landing.test.tsx confirms every file, quote, and test
+   * name below exists, so this list cannot drift from the code.
+   */
+  verification: {
+    title: "From spec to enforcement to test",
+    items: [
+      {
+        rule: "A high-risk step cannot be marked done until a family member approves it",
+        spec: {
+          file: ".kiro/specs/fudepan-care-chain/requirements.md",
+          section: "Mandatory human approval",
+          quote:
+            "These actions must remain in `pending_approval` until an authorized household member approves them.",
+        },
+        enforcement: [
+          {
+            file: "supabase/migrations/20261120160000_care_chain_schema.sql",
+            code: "care_steps_high_risk_requires_approval",
+            what: "Database check: every high-risk step has approval_required = true.",
+          },
+          {
+            file: "src/app/(app)/care/actions.ts",
+            code: "completeStep",
+            what: "Sends the request to the same guarded service as the new pages; it writes no step or audit row itself.",
+          },
+          {
+            file: "supabase/migrations/20261210000300_shared_care_functions.sql",
+            code: "approval_pending",
+            what: "Database function: refuses to mark a step done while a high-risk step still waits for approval, before any write.",
+          },
+        ],
+        tests: [
+          {
+            file: "supabase/tests/database/care_chain_foundation.test.sql",
+            name: "A high-risk step cannot be saved without approval_required",
+          },
+          {
+            file: "src/lib/care/actions.test.ts",
+            name: "refuses to complete a pending high-risk step that requires approval, and writes nothing",
+          },
+          {
+            file: "src/lib/care/actions.test.ts",
+            name: "completes an approved high-risk step and records step_completed in the audit trail",
+          },
+        ],
+      },
+    ],
+  },
   parts: ["Specs", "Steering", "Hooks", "MCP", "Crew"],
 };
 

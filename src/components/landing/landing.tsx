@@ -141,7 +141,7 @@ function FollowUp() {
   const { task, labels } = FOLLOW_UP;
   const onTime = isOnTime(task);
   return (
-    <section id="follow-up" className="section section--soft" aria-labelledby="follow-title">
+    <section id="follow-up" className="section section--slate" aria-labelledby="follow-title">
       <div className="shell split">
         <div className="split__text" data-reveal>
           <p className="eyebrow">Follow-up</p>
@@ -149,6 +149,8 @@ function FollowUp() {
             {FOLLOW_UP.title}
           </h2>
           <p className="section__lede">{FOLLOW_UP.lede}</p>
+          {/* Visible to everyone, not screen-reader-only: this example sends nothing. */}
+          {FOLLOW_UP.disclaimer && <p className="follow__note">{FOLLOW_UP.disclaimer}</p>}
           <ul className="ticks">
             {FOLLOW_UP.points.map((p) => (
               <li key={p}>
@@ -335,6 +337,44 @@ function SiteFooter() {
         <div className="kiro">
           <p className="kiro__title">{KIRO.title}</p>
           <p className="kiro__text">{KIRO.text}</p>
+          {KIRO.verification && (
+            <div className="kiro__verification mt-4 border-t border-current/20 pt-4">
+              <p className="text-sm font-semibold mb-2">{KIRO.verification.title}</p>
+              {KIRO.verification.items.map((item) => (
+                <details key={item.rule} className="mt-2 text-sm">
+                  <summary className="cursor-pointer hover:underline">{item.rule}</summary>
+                  <dl className="mt-2 ml-4 text-xs space-y-2 opacity-80">
+                    <div>
+                      <dt className="font-semibold">Spec</dt>
+                      <dd>
+                        <span className="font-mono">{item.spec.file}</span>, “{item.spec.section}”:{" "}
+                        <q>{item.spec.quote}</q>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Enforcement</dt>
+                      {item.enforcement.map((e) => (
+                        <dd key={e.code}>
+                          <span className="font-mono">
+                            {e.file} ({e.code})
+                          </span>
+                          : {e.what}
+                        </dd>
+                      ))}
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Tests</dt>
+                      {item.tests.map((t) => (
+                        <dd key={t.name}>
+                          <span className="font-mono">{t.file}</span>: “{t.name}”
+                        </dd>
+                      ))}
+                    </div>
+                  </dl>
+                </details>
+              ))}
+            </div>
+          )}
           <ul className="kiro__parts" aria-label="Kiro features used">
             {KIRO.parts.map((p) => (
               <li key={p}>{p}</li>

@@ -15,6 +15,8 @@ export const LOG_FIELDS = [
   "user_id",
   "household_id",
   "note_id",
+  "step_id",
+  "request_id",
   "stage",
   "reason",
   "code",

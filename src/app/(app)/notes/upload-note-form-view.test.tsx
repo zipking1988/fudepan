@@ -36,7 +36,7 @@ describe("upload form markup", () => {
   it("has a labelled submit button and a polite status region", () => {
     const html = render({ status: "idle", file: photo });
     expect(submitButton(html)).toBe(
-      '<button type="submit" class="app-button">Upload note</button>',
+      '<button type="submit" class="app-button">Upload and read note</button>',
     );
     expect(html).toMatch(/<p role="status" aria-live="polite"[^>]*>/);
     expect(html).toContain("IMG_0042.jpg");
@@ -80,7 +80,7 @@ describe("upload form markup", () => {
       error: { code: "no_file", message: "Choose a photo of the note first." },
     });
     expect(html).toContain("Choose a photo of the note first.");
-    expect(submitButton(html)).toContain(">Upload note<");
+    expect(submitButton(html)).toContain(">Upload and read note<");
   });
 
   it("confirms success with a link to the note and a way to upload another", () => {
@@ -90,12 +90,62 @@ describe("upload form markup", () => {
       noteId: "a0000000-0000-4000-8000-000000000001",
     });
     expect(html).toContain('data-upload-state="uploaded"');
-    expect(html).toContain("Note uploaded.");
+    expect(html).toContain("Note saved.");
     expect(html).toContain('href="/notes/a0000000-0000-4000-8000-000000000001"');
     expect(html).toContain(">Open the note<");
     expect(html).toContain(">Upload another note<");
     expect(html).toMatch(/<div tabindex="-1" class="app-success/);
     expect(html).not.toContain('id="note-file"');
+  });
+
+  it("shows reading progress after upload, with no buttons that could interrupt it", () => {
+    const html = renderToStaticMarkup(
+      <UploadNoteFormView
+        state={{ status: "uploaded", file: null, noteId: "a0000000-0000-4000-8000-000000000001" }}
+        householdName="Demo household"
+        reading={{ phase: "reading", startedAt: Date.now() }}
+      />,
+    );
+    expect(html).toContain("Note saved.");
+    expect(html).toMatch(/<p role="status"[^>]*>Reading the handwriting…<\/p>/);
+    expect(html).toContain("marked as missing instead of guessed");
+    expect(html).toContain("Nothing is booked, paid, or sent.");
+    expect(html).not.toContain(">Open the note<");
+    expect(html).not.toContain(">Upload another note<");
+  });
+
+  it("explains a reading failure and offers a retry from the note", () => {
+    const html = renderToStaticMarkup(
+      <UploadNoteFormView
+        state={{ status: "uploaded", file: null, noteId: "a0000000-0000-4000-8000-000000000001" }}
+        householdName="Demo household"
+        reading={{ phase: "failed", message: "The reading service did not answer. The photo is saved. Try again in a minute." }}
+      />,
+    );
+    expect(html).toContain('role="alert"');
+    expect(html).toContain("The note could not be read");
+    expect(html).toContain("The photo is saved.");
+    expect(html).toContain(">Open the note to try again<");
+  });
+
+  it("offers a retry button on a reading failure when a retry handler is given", () => {
+    const html = renderToStaticMarkup(
+      <UploadNoteFormView
+        state={{ status: "uploaded", file: null, noteId: "a0000000-0000-4000-8000-000000000001" }}
+        householdName="Demo household"
+        reading={{ phase: "failed", message: "Try again." }}
+        onRetryReading={() => undefined}
+      />,
+    );
+    expect(html).toContain(">Try reading again<");
+    expect(html).toContain(">Open the note<");
+  });
+
+  it("previews the chosen photo before upload", () => {
+    const html = renderToStaticMarkup(
+      <UploadNoteFormView state={{ status: "idle", file: photo }} householdName="Demo household" previewUrl="blob:fake" />,
+    );
+    expect(html).toMatch(/<img src="blob:fake" alt="Preview of the photo you chose\. Check it shows the whole note\."/);
   });
 
   it("never uses vague error wording in any state", () => {

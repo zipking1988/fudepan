@@ -9,5 +9,5 @@ export type RiskLevel = (typeof RISK_LEVELS)[number];
 export const RISK_LABELS: Record<RiskLevel, string> = {
   low: "Low priority",
   medium: "Needs attention",
-  high: "Requires confirmation",
+  high: "High risk",
 };

@@ -221,10 +221,17 @@
   border-radius: 6px;
   background: #fff;
   font-size: 1rem;
+  /* The browser's "No file chosen" text gets cut off on phones; the chosen file is named below. */
+  color: transparent;
 }
 
 .app-file[aria-invalid="true"] {
   border-color: var(--color-ember-ink);
+}
+
+.app-file:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
 }
 
 .app-file::file-selector-button {
@@ -343,4 +350,101 @@
   border: 1px solid var(--color-stone-deep);
   border-radius: 4px;
   background: #fff;
+}
+
+/* Upload preview, reading progress, note cards */
+.app-note-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 16rem;
+  object-fit: contain;
+  border: 1px solid var(--color-stone-deep);
+  border-radius: 4px;
+  background: #fff;
+}
+
+/* Capture screen: big camera control, text at least 20px, targets at least 48px */
+.family-capture {
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+.family-capture .app-label,
+.family-capture .app-hint,
+.family-capture .app-button {
+  font-size: 1.25rem;
+}
+.family-capture .app-button {
+  min-height: 3.5rem;
+}
+.family-capture__camera::file-selector-button {
+  min-height: 3.5rem;
+  font-size: 1.25rem;
+}
+.family-capture__preview {
+  max-height: 24rem;
+}
+/* Recipient view: text at least 20px, targets at least 48px, one large photo action */
+.family-recipient {
+  font-size: 1.25rem;
+  line-height: 1.5;
+}
+.family-recipient__photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.5rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+.family-recipient__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  font-size: 1.25rem;
+}
+.app-reading {
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--color-ink);
+  background: #fff;
+}
+
+.app-note-card {
+  display: grid;
+  grid-template-columns: 6rem 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 40rem) {
+  .app-note-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+.app-note-thumb {
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border: 1px solid var(--color-stone-deep);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.app-todo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.app-todo li {
+  padding: 0.25rem 0.75rem;
+  border: 2px solid var(--color-ember-ink);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.app-todo li[data-kind="done"] {
+  border-color: var(--color-stone-deep);
+  font-weight: 500;
 }

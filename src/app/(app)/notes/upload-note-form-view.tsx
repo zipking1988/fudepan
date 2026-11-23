@@ -4,6 +4,7 @@ import type { ChangeEvent, FormEvent, Ref } from "react";
 import { NOTE_FILE_ACCEPT } from "@/lib/notes/rules";
 import { isUploadBusy, type UploadState } from "@/lib/notes/upload-state";
 import { formatFileSize } from "@/lib/notes/validation";
+import { ReadingFailed, ReadingInProgress, type ReadState } from "./read-note";
 
 export type SelectedFile = { name: string; size: number };
 
@@ -27,6 +28,9 @@ export function UploadNoteFormView({
   onSubmit,
   onReset,
   successRef,
+  reading = { phase: "idle" },
+  onRetryReading,
+  previewUrl = null,
 }: {
   state: UploadState<SelectedFile>;
   householdName: string;
@@ -34,6 +38,9 @@ export function UploadNoteFormView({
   onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
   onReset?: () => void;
   successRef?: Ref<HTMLDivElement>;
+  reading?: ReadState;
+  onRetryReading?: () => void;
+  previewUrl?: string | null;
 }) {
   const busy = isUploadBusy(state);
   const error = state.status === "failed" ? state.error : null;
@@ -53,19 +60,28 @@ export function UploadNoteFormView({
 
       {state.status === "uploaded" ? (
         <div ref={successRef} tabIndex={-1} className="app-success mt-5 grid gap-4">
-          <p className="text-lg font-semibold">Note uploaded.</p>
-          <p>
-            The photo is saved and only members of {householdName} can see it. Fudepan has not read
-            it yet.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href={`/notes/${state.noteId}`} className="app-button">
-              Open the note
-            </Link>
-            <button type="button" className="app-button app-button--quiet" onClick={onReset}>
-              Upload another note
-            </button>
-          </div>
+          <p className="text-lg font-semibold">Note saved.</p>
+          <p>Only members of {householdName} can see the photo.</p>
+          {reading.phase === "reading" && <ReadingInProgress startedAt={reading.startedAt} />}
+          {reading.phase === "failed" && <ReadingFailed message={reading.message} />}
+          {reading.phase !== "reading" && (
+            <div className="flex flex-wrap gap-3">
+              {reading.phase === "failed" && onRetryReading && (
+                <button type="button" className="app-button" onClick={onRetryReading}>
+                  Try reading again
+                </button>
+              )}
+              <Link
+                href={`/notes/${state.noteId}`}
+                className={reading.phase === "failed" && onRetryReading ? "app-button app-button--quiet" : "app-button"}
+              >
+                {reading.phase === "failed" && !onRetryReading ? "Open the note to try again" : "Open the note"}
+              </Link>
+              <button type="button" className="app-button app-button--quiet" onClick={onReset}>
+                Upload another note
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <form onSubmit={onSubmit} noValidate aria-busy={busy} className="mt-5 grid gap-5">
@@ -74,8 +90,9 @@ export function UploadNoteFormView({
               Upload a handwritten note <span className="app-required">(required)</span>
             </label>
             <p id="note-file-help" className="app-hint">
-              Take a clear photo of the whole note. JPEG, PNG, or WebP, up to 10 MB. Only members of{" "}
-              {householdName} can see it.
+              Take a clear photo of the whole note, or choose one you already have. Fudepan then
+              reads it and drafts care steps for your family to check. JPEG, PNG, or WebP, up to 10
+              MB. Only members of {householdName} can see it.
             </p>
             <input
               id="note-file"
@@ -90,6 +107,14 @@ export function UploadNoteFormView({
               onChange={onSelect}
               className="app-file"
             />
+            {state.file && previewUrl && (
+              // eslint-disable-next-line @next/next/no-img-element -- local object URL, never leaves the device
+              <img
+                src={previewUrl}
+                alt="Preview of the photo you chose. Check it shows the whole note."
+                className="app-note-preview"
+              />
+            )}
             {state.file && (
               <p className="app-hint" data-selected-file>
                 Selected photo: <span className="font-semibold text-ink">{state.file.name}</span> (
@@ -113,7 +138,7 @@ export function UploadNoteFormView({
                   ? "Uploading…"
                   : error && state.file
                     ? "Try again"
-                    : "Upload note"}
+                    : "Upload and read note"}
             </button>
             <p role="status" aria-live="polite" className="app-hint">
               {STATUS_TEXT[state.status]}

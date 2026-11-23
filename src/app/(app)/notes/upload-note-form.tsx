@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useReducer, useRef, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useReducer, useRef, type ChangeEvent, type FormEvent } from "react";
 
 import { NOTE_UPLOAD_MESSAGES } from "@/lib/notes/messages";
 import { NOTES_BUCKET } from "@/lib/notes/rules";
@@ -15,6 +15,7 @@ import { NOTE_SIGNATURE_BYTES, checkNoteFile } from "@/lib/notes/validation";
 import { createClient } from "@/lib/supabase/client";
 
 import { completeNoteUpload, prepareNoteUpload, reportNoteUploadFailure } from "./actions";
+import { useReadNote } from "./read-note";
 import { UploadNoteFormView } from "./upload-note-form-view";
 
 const UNREADABLE: UploadError = {
@@ -27,6 +28,7 @@ const UNREADABLE: UploadError = {
  * upload token, send the image straight to private Storage (it never passes
  * through Vercel, which caps request bodies at 4.5 MB), then ask the server to
  * verify and save it. The file stays selected through any failure.
+ * Once saved, the note is read straight away and the drafted Care Chain opens.
  */
 export function UploadNoteForm({
   householdId,
@@ -38,6 +40,13 @@ export function UploadNoteForm({
   const [state, dispatch] = useReducer(uploadReducer<File>, undefined, initialUploadState<File>);
   const router = useRouter();
   const successRef = useRef<HTMLDivElement>(null);
+  const { state: reading, watch, retry } = useReadNote();
+  // A local preview so the person can check it is the right photo before uploading.
+  const previewUrl = useMemo(() => (state.file ? URL.createObjectURL(state.file) : null), [state.file]);
+  useEffect(() => {
+    if (!previewUrl) return;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   // Move focus to the result so keyboard and screen reader users land on the next step.
   useEffect(() => {
@@ -96,6 +105,8 @@ export function UploadNoteForm({
 
     dispatch({ type: "succeeded", noteId: completed.noteId });
     router.refresh();
+    // completeNoteUpload already scheduled the reading; only follow its outcome.
+    void watch(completed.noteId);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -123,6 +134,9 @@ export function UploadNoteForm({
       onSubmit={handleSubmit}
       onReset={() => dispatch({ type: "reset" })}
       successRef={successRef}
+      reading={reading}
+      onRetryReading={state.status === "uploaded" ? () => void retry(state.noteId) : undefined}
+      previewUrl={previewUrl}
     />
   );
 }

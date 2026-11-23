@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 /**
- * Loads the motion runtime (GSAP, ScrollTrigger, Lenis) after the page is
+ * Loads the motion runtime (GSAP, ScrollTrigger) after the page is
  * interactive, in its own chunk. The page is complete and usable without it.
  */
 export function LandingMotion() {

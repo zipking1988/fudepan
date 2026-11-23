@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-import { formatLocalDateTime, formatUtcDateTime } from "@/lib/format-date";
+import { formatLocalDateTimeLang, formatUtcDateTimeLang, type Language } from "@/lib/i18n/format";
 
 const subscribe = () => () => {};
 
@@ -10,7 +10,7 @@ const subscribe = () => () => {};
  * A timestamp in the reader's time zone. The server renders UTC (labelled as
  * such); after hydration the browser re-renders it in local time.
  */
-export function LocalDateTime({ iso }: { iso: string }) {
+export function LocalDateTime({ iso, lang = "en" }: { iso: string; lang?: Language }) {
   const inBrowser = useSyncExternalStore(
     subscribe,
     () => true,
@@ -18,6 +18,6 @@ export function LocalDateTime({ iso }: { iso: string }) {
   );
   const date = new Date(iso);
   return (
-    <time dateTime={iso}>{inBrowser ? formatLocalDateTime(date) : formatUtcDateTime(date)}</time>
+    <time dateTime={iso}>{inBrowser ? formatLocalDateTimeLang(date, lang) : formatUtcDateTimeLang(date, lang)}</time>
   );
 }

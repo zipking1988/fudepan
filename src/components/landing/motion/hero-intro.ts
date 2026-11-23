@@ -5,9 +5,6 @@ import { ANCHOR_EVENT, DURATION, EASE, SPRING, STAGGER } from "./tokens";
 type Options = { onLayout: () => void };
 
 const SELECTORS = [
-  "[data-intro-note]",
-  "[data-intro-magnet]",
-  "[data-intro-wipe]",
   "[data-intro-scan]",
   "[data-intro-mark]",
   "[data-intro-connector]",
@@ -19,11 +16,14 @@ const SELECTORS = [
 ].join(", ");
 
 /** Time between one note line and the next becoming a task. */
-const PER_TASK = 0.42;
+const PER_TASK = 0.18;
 
 /**
- * The hero entrance: the note is put on the fridge, written line by line,
- * read by a scan, and each line becomes a task card joined to it by a line.
+ * The hero entrance, played once per page load (and again only on Replay):
+ * a scan reads Grandma's note, and each line in turn is marked and becomes
+ * its task card, joined to it by a line on wide layouts. About two seconds,
+ * so the sample is ready to use almost at once. The note itself is never
+ * hidden. Nothing here is tied to scrolling.
  *
  * Hidden start states are set in CSS under `html.intro`, a class added by an
  * inline script, so without JavaScript nothing is ever hidden. If this module
@@ -137,103 +137,69 @@ function q<T extends Element = HTMLElement>(root: ParentNode, selector: string):
 
 function fullSequence(demo: HTMLElement): AnimationSequence {
   const wide = sideBySide(demo);
-  const note = demo.querySelector<HTMLElement>("[data-intro-note]");
-  const magnet = demo.querySelector<HTMLElement>("[data-intro-magnet]");
+  const paper = demo.querySelector<HTMLElement>(".demo-note__paper");
   const scan = demo.querySelector<HTMLElement>("[data-intro-scan]");
   const down = demo.querySelector<HTMLElement>("[data-intro-down]");
   const foot = demo.querySelector<HTMLElement>("[data-intro-foot]");
-  const wipes = q(demo, "[data-intro-wipe]");
-  const marks = q(demo, "[data-intro-mark]");
   const cards = q(demo, "[data-intro-card]");
   const asks = q(demo, "[data-intro-ask]");
   const seq: AnimationSequence = [];
   const ease = [...EASE] as [number, number, number, number];
 
-  // 1. The note is put on the fridge: it drops, turns, and settles on a spring.
-  if (note) {
-    seq.push([
-      note,
-      { opacity: [0, 1], y: [wide ? -140 : -60, 0], rotate: [-9, 0] },
-      { ...SPRING, at: 0 },
-    ]);
-  }
-  if (magnet) {
-    seq.push([
-      magnet,
-      { opacity: [0, 1], y: [-22, 0], scale: [1.35, 1] },
-      { type: "spring", stiffness: 320, damping: 15, at: 0.32 },
-    ]);
-  }
-
-  // 2. Grandma's handwriting appears line by line, left to right.
-  let t = 0.55;
-  for (const wipe of wipes) {
-    const words = wipe.parentElement?.textContent?.length ?? 20;
-    const duration = Math.min(0.55, 0.22 + words * 0.009);
-    seq.push([
-      wipe,
-      { transform: ["scaleX(1)", "scaleX(0)"] },
-      { duration, ease: [0.6, 0, 0.4, 1], at: t },
-    ]);
-    t += duration * 0.8;
-  }
-
-  // 3. A scan reads the note from top to bottom.
-  const scanAt = t + 0.1;
-  const noteHeight = note?.offsetHeight ?? 300;
+  // 1. A quick scan reads the note from top to bottom.
   if (scan) {
     seq.push([
       scan,
-      { opacity: [0, 1, 1, 0], transform: ["translateY(-48px)", `translateY(${noteHeight}px)`] },
-      { duration: 0.85, ease: "linear", at: scanAt },
+      {
+        opacity: [0, 1, 1, 0],
+        transform: ["translateY(-48px)", `translateY(${paper?.offsetHeight ?? 260}px)`],
+      },
+      { duration: 0.6, ease: "linear", at: 0 },
     ]);
   }
   if (down && !wide) {
-    seq.push([down, { opacity: [0, 1] }, { duration: DURATION.small, at: scanAt + 0.5 }]);
+    seq.push([down, { opacity: [0, 1], y: [-6, 0] }, { duration: DURATION.small, ease, at: 0.2 }]);
   }
 
-  // 4. Each line lights up, a line is drawn to its task, and the card arrives.
-  const tasksAt = scanAt + 0.75;
+  // 2. Line by line, the words are marked and their task comes out of the note:
+  //    to the right beside it, downward below it.
+  const tasksAt = 0.2;
   cards.forEach((card, i) => {
     const id = card.dataset.introCard;
     const at = tasksAt + i * PER_TASK;
-    const mark = marks[i];
+    const mark = demo.querySelector<HTMLElement>(`[data-line="${id}"] [data-intro-mark]`);
     const group = demo.querySelector<SVGGElement>(`[data-intro-connector="${id}"]`);
     const path = group?.querySelector("path");
     if (mark) {
-      seq.push([mark, { opacity: [0, 1] }, { duration: DURATION.small, at }]);
-      seq.push([mark, { opacity: [1, 0] }, { duration: DURATION.base, at: at + 1.0 }]);
+      seq.push([
+        mark,
+        { opacity: [0, 1], transform: ["scaleX(0.4)", "scaleX(1)"] },
+        { duration: DURATION.small, ease, at },
+      ]);
+      seq.push([mark, { opacity: [1, 0] }, { duration: DURATION.small, at: at + 0.55 }]);
     }
     if (wide && group && path) {
-      seq.push([group, { opacity: [0, 1] }, { duration: 0.15, at: at + 0.05 }]);
-      seq.push([
-        path,
-        { strokeDashoffset: [1, 0] },
-        { duration: DURATION.base, ease, at: at + 0.05 },
-      ]);
-      seq.push([group, { opacity: [1, 0.3] }, { duration: DURATION.base, at: at + 1.0 }]);
+      seq.push([group, { opacity: [0, 1] }, { duration: 0.12, at: at + 0.05 }]);
+      seq.push([path, { strokeDashoffset: [1, 0] }, { duration: 0.4, ease, at: at + 0.05 }]);
+      seq.push([group, { opacity: [1, 0.3] }, { duration: DURATION.small, at: at + 0.7 }]);
     }
     seq.push([
       card,
-      wide ? { opacity: [0, 1], x: [36, 0] } : { opacity: [0, 1], y: [20, 0] },
-      { ...SPRING, at: at + (wide ? 0.3 : 0.1) },
+      wide ? { opacity: [0, 1], x: [-20, 0] } : { opacity: [0, 1], y: [-10, 0] },
+      { duration: 0.45, ease, at: at + (wide ? 0.2 : 0.08) },
     ]);
   });
 
-  // 5. What is missing asks for attention, twice, then stays still.
-  const endAt = tasksAt + cards.length * PER_TASK;
+  // 3. The footer settles, and what is missing gets one gentle nudge.
+  const endAt = tasksAt + Math.max(0, cards.length - 1) * PER_TASK + 0.45;
+  if (foot) {
+    seq.push([foot, { opacity: [0, 1], y: [6, 0] }, { duration: DURATION.small, ease, at: endAt }]);
+  }
   if (asks.length) {
     seq.push([
       asks,
-      { scale: [1, 1.06, 1, 1.06, 1] },
-      { duration: 1.2, ease: "easeInOut", at: endAt + 0.4 },
-    ]);
-  }
-  if (foot) {
-    seq.push([
-      foot,
-      { opacity: [0, 1], y: [8, 0] },
-      { duration: DURATION.base, ease, at: endAt + 0.2 },
+      { scale: [1, 1.04, 1] },
+      { duration: DURATION.base, ease: "easeInOut", at: endAt + 0.1 },
     ]);
   }
   return seq;
@@ -247,18 +213,13 @@ function reducedSequence(demo: HTMLElement): AnimationSequence {
       seq.push([el, { opacity: [0, 1] }, { duration: DURATION.small, at }]);
     }
   };
-  const wipes = q(demo, "[data-intro-wipe]");
-  if (wipes.length)
-    seq.push([wipes, { transform: ["scaleX(0)", "scaleX(0)"] }, { duration: 0.01, at: 0 }]);
-  fade(demo.querySelector("[data-intro-note]"), 0);
-  fade(demo.querySelector("[data-intro-magnet]"), 0);
   const groups = q(demo, "[data-intro-connector]");
   if (groups.length && sideBySide(demo)) {
-    seq.push([groups, { opacity: [0, 0.3] }, { duration: DURATION.small, at: 0.3 }]);
+    seq.push([groups, { opacity: [0, 0.3] }, { duration: DURATION.small, at: 0.1 }]);
   }
-  q(demo, "[data-intro-card]").forEach((card, i) => fade(card, 0.3 + i * STAGGER));
-  fade(demo.querySelector("[data-intro-foot]"), 0.6);
-  if (!sideBySide(demo)) fade(demo.querySelector("[data-intro-down]"), 0.3);
+  q(demo, "[data-intro-card]").forEach((card, i) => fade(card, 0.1 + i * STAGGER));
+  fade(demo.querySelector("[data-intro-foot]"), 0.4);
+  if (!sideBySide(demo)) fade(demo.querySelector("[data-intro-down]"), 0.1);
   return seq;
 }
 

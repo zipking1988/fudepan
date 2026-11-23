@@ -19,6 +19,14 @@ const serverEnvSchema = z.object({
         ? "is required"
         : "must be an http(s) URL, e.g. http://localhost:3000",
   }),
+  // AI extraction vars. Optional so the rest of the app stays up if they are not set.
+  AIAND_API_KEY: z.string().min(1).optional(),
+  AIAND_BASE_URL: z
+    .url({ protocol: /^https?$/, error: "must be an http(s) URL" })
+    .optional(),
+  AIAND_MODEL: z.string().min(1).optional(),
+  // Bearer secret for the Vercel Cron route. When unset, the cron route refuses every request.
+  CRON_SECRET: z.string().min(16, "must be at least 16 characters when set").optional(),
 });
 
 export type ServerEnv = PublicEnv & z.infer<typeof serverEnvSchema>;
@@ -51,6 +59,10 @@ export function parseServerEnv(source: Record<string, string | undefined>): Serv
   const result = serverEnvSchema.safeParse({
     SUPABASE_SERVICE_ROLE_KEY: emptyToUndefined(source.SUPABASE_SERVICE_ROLE_KEY),
     APP_BASE_URL: emptyToUndefined(source.APP_BASE_URL),
+    AIAND_API_KEY: emptyToUndefined(source.AIAND_API_KEY),
+    AIAND_BASE_URL: emptyToUndefined(source.AIAND_BASE_URL),
+    AIAND_MODEL: emptyToUndefined(source.AIAND_MODEL),
+    CRON_SECRET: emptyToUndefined(source.CRON_SECRET),
   });
   if (!result.success) {
     problems.push(...describeIssues(result.error));

@@ -47,7 +47,7 @@ class FakeStore implements NoteUploadStore {
   }
   private canUpload(householdId: string, userId: string) {
     const m = this.members.get(`${householdId}:${userId}`);
-    return Boolean(m?.active && m.role !== "care_recipient");
+    return Boolean(m?.active);
   }
 
   async findMembership(userId: string, householdId: string) {
@@ -266,19 +266,12 @@ describe("prepare", () => {
     expect(store.audits).toEqual([]);
   });
 
-  it("refuses the care recipient (read-only) and audits the attempt", async () => {
+  it("lets the care recipient prepare an upload", async () => {
     const result = await service().prepare(MOM, pngInput());
-    expect(result).toMatchObject({ ok: false, error: { code: "not_allowed" } });
-    expect(store.audits).toEqual([
-      {
-        householdId: HOUSEHOLD,
-        actorId: MOM.id,
-        event: "note.upload_failed",
-        payload: { stage: "prepare", reason: "role_not_allowed" },
-      },
-    ]);
+    expect(result.ok).toBe(true);
+    expect(store.reservations.size).toBe(1);
+    expect(store.audits.some((a) => a.event === "note.upload_failed")).toBe(false);
   });
-
   it("re-checks size and type on the server, and audits the rejection", async () => {
     const tooBig = await service().prepare(MISA, pngInput(MAX_NOTE_BYTES + 1));
     expect(tooBig).toMatchObject({ ok: false, error: { code: "too_large" } });
@@ -359,7 +352,11 @@ describe("complete", () => {
     const { noteId, objectPath } = await prepared();
     store.upload(objectPath, PNG);
     await service().complete(MISA, { noteId });
-    expect(await service().complete(MISA, { noteId })).toEqual({ ok: true, noteId });
+    expect(await service().complete(MISA, { noteId })).toEqual({
+      ok: true,
+      noteId,
+      alreadyCompleted: true,
+    });
     expect(store.audits.filter((a) => a.event === "note.uploaded")).toHaveLength(1);
     expect(store.objects.has(objectPath)).toBe(true);
   });

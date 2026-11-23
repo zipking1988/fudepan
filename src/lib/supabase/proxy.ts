@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { safeNextPath } from "@/lib/auth/next-path";
+import { isProtectedPagePath, safeNextPath } from "@/lib/auth/next-path";
 import { getPublicEnv } from "@/lib/env/public";
 
 import type { Database } from "./database.types";
@@ -11,7 +11,7 @@ import type { Database } from "./database.types";
  * refreshed cookies to both Server Components and the browser.
  * Always return the response this function builds, or the refreshed cookies are lost.
  *
- * Also redirects signed-out visitors away from note pages. That is a
+ * Also redirects signed-out visitors away from note and family pages. That is a
  * convenience only: every page, action, and route checks the session itself.
  */
 export async function updateSession(request: NextRequest) {
@@ -50,10 +50,7 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   // The image route answers 404 itself; a redirect to an HTML page would break <img>.
-  const isNotePage =
-    pathname === "/notes" || (pathname.startsWith("/notes/") && !pathname.endsWith("/image"));
-
-  if (!signedIn && isNotePage) {
+  if (!signedIn && isProtectedPagePath(pathname)) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", safeNextPath(pathname));
     return redirectKeepingSession(url, response);

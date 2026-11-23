@@ -1,11 +1,31 @@
 /*
  * Landing page foundation: warm off-white paper, near-black ink, one deep
- * green, and Grandma's yellow note. Every text pair is at least 7:1 (see the
- * contrast table in the review notes). Risk is always written in words.
+ * green, and Grandma's yellow note. The hero sits on warmer paper with cobalt
+ * for the main action and the selected task; the follow-up sits on cool slate
+ * with terracotta and amber for what needs attention. Every text pair is at
+ * least 7:1:
+ *   cobalt on paper 8.8 · white on cobalt 9.3 · cobalt on note 8.1
+ *   on-slate 13.4 · on-slate-muted 9.9 · amber-light 8.8 · terracotta-light 7.2 (all on slate)
+ *   terracotta-ink on terracotta-soft 8.2 · amber on amber-soft 7.4
+ * Risk is always written in words.
  */
 .landing {
   /* Color */
   --bg: #faf8f3;
+  --paper: #f8f2e6;
+  --cobalt: #1d3f9e;
+  --cobalt-dark: #18357f;
+  --cobalt-soft: #e8eefb;
+  --slate: #1e293b;
+  --slate-raised: #263445;
+  --on-slate: #f1f5f9;
+  --on-slate-muted: #cbd5e1;
+  --amber-light: #fbbf24;
+  --amber-mark: #d97706;
+  --terracotta: #c2552b;
+  --terracotta-light: #f4a183;
+  --terracotta-ink: #7c2d12;
+  --terracotta-soft: #fdece4;
   --card: #ffffff;
   --soft: #f3f1ea;
   --ink: #15191c;
@@ -187,20 +207,21 @@ main:focus {
 .button:active {
   scale: 0.97;
 }
+/* The main action is cobalt: cool against the warm paper hero. */
 .button--primary {
-  background: var(--green);
-  color: var(--on-green);
+  background: var(--cobalt);
+  color: #fff;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.16),
-    0 1px 2px rgb(23 70 54 / 0.3),
-    0 10px 24px -10px rgb(31 92 70 / 0.55);
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 1px 2px rgb(24 53 127 / 0.3),
+    0 10px 24px -10px rgb(29 63 158 / 0.55);
 }
 .button--primary:hover {
-  background: var(--green-dark);
+  background: var(--cobalt-dark);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.16),
-    0 1px 2px rgb(23 70 54 / 0.3),
-    0 16px 32px -12px rgb(31 92 70 / 0.65);
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 1px 2px rgb(24 53 127 / 0.3),
+    0 16px 32px -12px rgb(29 63 158 / 0.65);
 }
 .button--ghost {
   background: rgb(255 255 255 / 0.7);
@@ -509,8 +530,22 @@ main:focus {
 /* ------------------------------------------------------------------ */
 /* Hero                                                                */
 /* ------------------------------------------------------------------ */
+/* Warm paper behind the hero, reaching up under the clear header and fading
+   into the page below. Focus rings here are cobalt, like the main action. */
 .hero {
+  --focus-ring: var(--cobalt);
+  position: relative;
+  isolation: isolate;
   padding-block: clamp(1.25rem, 3.5svh, 3rem) clamp(2.5rem, 5vw, 4.5rem);
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--header-h)) 0 0;
+  z-index: -1;
+  /* Flat paper keeps muted text (7.1:1) and the green eyebrow (7.0:1) at AAA. */
+  background: linear-gradient(180deg, var(--paper) 0%, var(--paper) 78%, rgb(248 242 230 / 0) 100%);
+  pointer-events: none;
 }
 .hero__eyebrow {
   margin-bottom: clamp(1rem, 2vw, 1.5rem);
@@ -714,8 +749,13 @@ main:focus {
     margin-top: 2.25rem;
   }
 }
-/* Phones: a full-width note, so every line of Grandma's handwriting fits on one row. */
+/* Phones: a full-width note, so every line of Grandma's handwriting fits on one
+   row, and a thinner plate so the task cards get the width. */
 @container (max-width: 479.98px) {
+  .demo {
+    padding: 0.6rem;
+    border-radius: 26px;
+  }
   .demo-note {
     width: 100%;
     margin-top: 0.25rem;
@@ -732,11 +772,15 @@ main:focus {
     top: 0.4rem;
   }
   .draft {
-    padding: 1rem;
+    padding: 0.9rem 0.8rem;
+    border-radius: 22px;
   }
   .draft__hint {
     margin-bottom: 0.6rem;
-    font-size: 0.76rem;
+    font-size: 0.85rem;
+  }
+  .task {
+    padding: 0.75rem 0.8rem 0.8rem;
   }
   .draft__foot {
     gap: 0.15rem 0.75rem;
@@ -799,7 +843,7 @@ main:focus {
   font-size: 1.3rem;
   line-height: var(--rule);
 }
-/* Ruled lines belong to each line, so the writing wipe can carry them. */
+/* Ruled lines belong to each line, so a highlighted line keeps its rule. */
 .demo-note__line {
   position: relative;
   background: linear-gradient(transparent calc(var(--rule) - 1.5px), rgb(120 98 20 / 0.16) 0) 0 0 /
@@ -812,32 +856,23 @@ main:focus {
 .demo-note__words {
   position: relative;
 }
+/* The words a task came from: a cobalt highlighter stroke that sweeps in. */
 .demo-note__mark {
   position: absolute;
   inset: 0.2rem -0.4rem 0.15rem;
   border-radius: 0.45rem;
-  background: rgb(31 92 70 / 0.16);
-  box-shadow: inset 0 -2px 0 rgb(31 92 70 / 0.7);
+  background: rgb(29 63 158 / 0.14);
+  box-shadow: inset 0 -2px 0 rgb(29 63 158 / 0.75);
   opacity: 0;
-  transition: opacity var(--dur-small) var(--ease);
+  transform: scaleX(0.4);
+  transform-origin: left center;
+  transition:
+    opacity var(--dur-small) var(--ease),
+    transform var(--dur-small) var(--ease);
 }
 .demo-note__line.is-active .demo-note__mark {
   opacity: 1;
-}
-.demo-note__wipe {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background:
-    linear-gradient(transparent calc(var(--rule) - 1.5px), rgb(120 98 20 / 0.16) 0) 0 0 / 100%
-      var(--rule),
-    var(--note);
-  transform: scaleX(0);
-  transform-origin: right center;
-  pointer-events: none;
-}
-.demo-note__sign .demo-note__wipe {
-  background: var(--note);
+  transform: none;
 }
 .demo-note__scan {
   position: absolute;
@@ -847,14 +882,14 @@ main:focus {
   background: linear-gradient(
     to bottom,
     transparent,
-    rgb(31 92 70 / 0.16) 70%,
-    rgb(31 92 70 / 0.6)
+    rgb(29 63 158 / 0.12) 70%,
+    rgb(29 63 158 / 0.5)
   );
   opacity: 0;
   pointer-events: none;
 }
 .demo-down {
-  color: var(--green);
+  color: var(--cobalt);
   font-size: 1.5rem;
   font-weight: 600;
   line-height: 1;
@@ -879,14 +914,18 @@ main:focus {
 }
 .connector path {
   fill: none;
-  stroke: var(--green);
+  stroke: var(--cobalt);
   stroke-dasharray: 1;
   stroke-dashoffset: 0;
   stroke-linecap: round;
   stroke-width: 1.75;
+  transition: stroke-width var(--dur-small) var(--ease);
+}
+.connector.is-active path {
+  stroke-width: 2.5;
 }
 .connector circle {
-  fill: var(--green);
+  fill: var(--cobalt);
 }
 
 /* The draft */
@@ -898,9 +937,10 @@ main:focus {
 }
 .draft__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 0.15rem 1rem;
 }
 .draft__label {
   display: inline-flex;
@@ -914,14 +954,14 @@ main:focus {
   width: 0.55rem;
   height: 0.55rem;
   border-radius: 50%;
-  background: var(--green);
+  background: var(--cobalt);
 }
 .draft__pulse::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: var(--green);
+  background: var(--cobalt);
   opacity: 0;
 }
 .draft__summary {
@@ -954,29 +994,45 @@ main:focus {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: translate var(--dur-small) var(--ease);
+  /* The card's own press feedback replaces the grey tap flash on phones. */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    translate var(--dur-small) var(--ease),
+    scale 120ms var(--ease),
+    background-color var(--dur-small) var(--ease);
 }
-/* Hover and selection: the card lifts and a soft green glow appears. */
+/* Hover and selection: a cobalt ring with a soft glow. */
 .task::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   box-shadow:
-    0 0 0 1.5px var(--green),
-    0 0 0 6px rgb(31 92 70 / 0.08),
-    0 16px 32px -14px rgb(31 92 70 / 0.45);
+    0 0 0 1.5px var(--cobalt),
+    0 0 0 6px rgb(29 63 158 / 0.08),
+    0 16px 32px -14px rgb(29 63 158 / 0.4);
   opacity: 0;
   transition: opacity var(--dur-small) var(--ease);
   pointer-events: none;
 }
-.task:hover,
-.task.is-active {
-  translate: 0 -4px;
-}
-.task:hover::after,
-.task.is-active::after {
+.task.is-active::after,
+.task[aria-pressed="true"]::after {
   opacity: 1;
+}
+/* Lift only where a pointer can hover. On touch screens it would stick after a tap. */
+@media (hover: hover) {
+  .task:hover,
+  .task.is-active {
+    translate: 0 -4px;
+  }
+  .task:hover::after {
+    opacity: 1;
+  }
+}
+/* Selected: a faint cobalt tint and a cobalt edge, so it is not shown by the ring alone. */
+.task[aria-pressed="true"] {
+  background: #f7f9fe;
 }
 .task[aria-pressed="true"]::before {
   content: "";
@@ -984,9 +1040,15 @@ main:focus {
   top: 0.85rem;
   bottom: 0.85rem;
   left: 0;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--green);
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--cobalt);
+}
+/* Pressing gives way a little, so a tap is felt before anything else changes.
+   Listed after the selected state so pressing a selected card shows too. */
+.task:active {
+  scale: 0.985;
+  background: #f1f4fc;
 }
 .task__title {
   font-size: 0.98rem;
@@ -1051,10 +1113,10 @@ main:focus {
   background: var(--note);
   box-shadow:
     inset 0 0 0 1px rgb(120 98 20 / 0.18),
-    inset 3px 0 0 var(--green);
+    inset 4px 0 0 var(--cobalt);
 }
 .task__source-label {
-  color: var(--green-dark);
+  color: var(--cobalt);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -1091,15 +1153,22 @@ main:focus {
   margin-top: 0.5rem;
   border: 0;
   border-radius: var(--radius-inner);
-  background: rgb(31 92 70 / 0.07);
-  color: var(--green-dark);
+  background: var(--cobalt-soft);
+  color: var(--cobalt);
   font: inherit;
   font-size: 0.92rem;
   font-weight: 650;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: scale 120ms var(--ease);
 }
+.draft__more:active {
+  scale: 0.985;
+}
+/* Narrow panels show the first two tasks, then a button for the rest. */
 @container (max-width: 719.98px) {
-  .draft__list:not(.is-expanded) .draft__item:nth-child(n + 2) {
+  .draft__list:not(.is-expanded) .draft__item:nth-child(n + 3) {
     display: none;
   }
   .draft__more {
@@ -1107,32 +1176,29 @@ main:focus {
   }
 }
 .draft__replay {
-  padding: 0.25rem 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
   border: 0;
   background: none;
-  color: var(--green);
+  color: var(--cobalt);
   font: inherit;
   font-weight: 650;
   text-decoration: underline;
   text-underline-offset: 0.25em;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* Hero entrance. Start states apply only under html.intro (set by an inline
-   script); hero-intro.ts plays the rest and then adds .intro-done. */
+/* Hero entrance, played once per page load: each line of the note becomes its
+   task card. Grandma's note itself is never hidden. Start states apply only
+   under html.intro (set by an inline script); hero-intro.ts plays the rest and
+   then adds .intro-done. */
 html.intro:not(.intro-done)
-  :is(
-    [data-intro-note],
-    [data-intro-magnet],
-    [data-intro-card],
-    [data-intro-foot],
-    [data-intro-down],
-    [data-intro-connector]
-  ) {
+  :is([data-intro-card], [data-intro-foot], [data-intro-down], [data-intro-connector]) {
   opacity: 0;
-}
-html.intro:not(.intro-done) [data-intro-wipe] {
-  transform: scaleX(1);
 }
 html.intro:not(.intro-done) [data-intro-connector] path {
   stroke-dashoffset: 1;
@@ -1141,22 +1207,12 @@ html.intro:not(.intro-done) [data-intro-connector] path {
    the settled state wins over anything an interrupted animation left behind.
    Important rules beat inline styles and running animations; Replay removes
    .intro-done before it plays, so it is unaffected. */
-html.intro-done
-  :is(
-    [data-intro-note],
-    [data-intro-magnet],
-    [data-intro-card],
-    [data-intro-foot],
-    [data-intro-down]
-  ) {
+html.intro-done :is([data-intro-card], [data-intro-foot], [data-intro-down]) {
   opacity: 1 !important;
   transform: none !important;
 }
 html.intro-done [data-intro-ask] {
   transform: none !important;
-}
-html.intro-done [data-intro-wipe] {
-  transform: scaleX(0) !important;
 }
 html.intro-done [data-intro-scan] {
   opacity: 0 !important;
@@ -1166,18 +1222,8 @@ html.intro-done [data-intro-connector] path {
 }
 /* If the entrance code never arrives, show everything anyway. */
 html.intro:not(.intro-live):not(.intro-done)
-  :is(
-    [data-intro-note],
-    [data-intro-magnet],
-    [data-intro-card],
-    [data-intro-foot],
-    [data-intro-down],
-    [data-intro-connector]
-  ) {
+  :is([data-intro-card], [data-intro-foot], [data-intro-down], [data-intro-connector]) {
   animation: intro-failsafe var(--dur-small) linear 4s forwards;
-}
-html.intro:not(.intro-live):not(.intro-done) [data-intro-wipe] {
-  animation: intro-failsafe-wipe var(--dur-small) linear 4s forwards;
 }
 html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
   animation: intro-failsafe-line var(--dur-small) linear 4s forwards;
@@ -1186,10 +1232,6 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
 /* ------------------------------------------------------------------ */
 /* How it works                                                        */
 /* ------------------------------------------------------------------ */
-.how__stage,
-.how__rail {
-  display: none;
-}
 .how__steps {
   display: grid;
   gap: 1.25rem;
@@ -1231,106 +1273,6 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
 .how__body {
   margin-top: 0.4rem;
   color: var(--muted);
-}
-
-/* Pinned layout on large screens: text on the left, one live picture. */
-.how--pinned {
-  padding-block: 0;
-}
-.how--pinned .how__pin {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(3rem, 6vw, 6rem);
-  align-items: center;
-  min-height: 100svh;
-  padding-block: calc(var(--header-h) + 2.5rem) 2.5rem;
-}
-.how--pinned .how__text {
-  display: grid;
-  grid-template-columns: 3px minmax(0, 1fr);
-  column-gap: 1.75rem;
-}
-.how--pinned .how__head {
-  grid-column: 1 / -1;
-  margin-bottom: 2.75rem;
-}
-.how--pinned .how__rail {
-  position: relative;
-  display: block;
-  border-radius: 3px;
-  background: var(--line-strong);
-}
-.how__rail-fill {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--green);
-  transform: scaleY(var(--p, 0));
-  transform-origin: top;
-}
-.how--pinned .how__steps {
-  grid-template-columns: none;
-  gap: 0.75rem;
-}
-/* Every step keeps full-contrast text (ink titles, muted body at 7.5:1).
-   The current step is marked by its own card, a green edge, and a filled
-   number, never by fading the others. */
-.how--pinned .how__step {
-  position: relative;
-  isolation: isolate;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: none;
-  gap: 1rem;
-  padding: 1rem 1.1rem;
-  border-radius: var(--radius-inner);
-  background: none;
-  box-shadow: none;
-}
-.how--pinned .how__step::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: var(--card);
-  box-shadow:
-    var(--shadow-card),
-    inset 4px 0 0 var(--green);
-  opacity: 0;
-  transition: opacity var(--dur-base) var(--ease);
-}
-.how--pinned .how__step.is-current::before {
-  opacity: 1;
-}
-.how--pinned .how__mini {
-  display: none;
-}
-.how--pinned .how__number {
-  margin: 0.15rem 0 0;
-  background: transparent;
-  box-shadow: inset 0 0 0 2px var(--line-strong);
-  color: var(--muted);
-  transition:
-    background-color var(--dur-base) var(--ease),
-    box-shadow var(--dur-base) var(--ease),
-    color var(--dur-base) var(--ease);
-}
-.how--pinned .how__step.is-current .how__number {
-  background: var(--green);
-  box-shadow: none;
-  color: var(--on-green);
-}
-.how--pinned .how__title {
-  margin-top: 0;
-}
-.how--pinned .how__stage {
-  display: block;
-}
-.how--pinned .how__stage .scene {
-  width: min(100%, calc((100svh - var(--header-h) - 5rem) * 4 / 3));
-  margin-inline: auto;
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
 }
 
 /* The scene: a fridge, Grandma's note, and a phone. Sized in container units. */
@@ -1430,8 +1372,7 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
 }
 .scene[data-step="1"] [data-screen="1"],
 .scene[data-step="2"] [data-screen="2"],
-.scene[data-step="3"] [data-screen="3"],
-.scene[data-step="live"] [data-screen="1"] {
+.scene[data-step="3"] [data-screen="3"] {
   opacity: 1;
 }
 .screen--camera {
@@ -1515,13 +1456,6 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
 }
 .scene[data-step="2"] .mini-note__hit {
   --hit: 1;
-}
-.screen__scan {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3cqw;
-  background: linear-gradient(to bottom, transparent, rgb(31 92 70 / 0.55));
-  opacity: 0;
 }
 .screen__label {
   color: var(--green);
@@ -1641,13 +1575,6 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
 .scene[data-step="3"] .scene__person {
   opacity: 1;
 }
-.scene__flash {
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  opacity: 0;
-  pointer-events: none;
-}
 
 /* ------------------------------------------------------------------ */
 /* Follow-up                                                           */
@@ -1663,8 +1590,53 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
     gap: 4rem;
   }
 }
+/* Follow-up sits on cool slate, after the warm hero. Terracotta and amber mark
+   what needs attention; text stays at 7:1 or more even under the warm glow. */
+.section--slate {
+  --focus-ring: var(--amber-light);
+  background:
+    radial-gradient(50rem 30rem at 100% 0%, rgb(194 85 43 / 0.16), transparent 65%), var(--slate);
+  color: var(--on-slate);
+}
+.section--slate .eyebrow {
+  color: var(--amber-light);
+}
+.section--slate .section__lede {
+  color: var(--on-slate-muted);
+}
+.section--slate .ticks .icon {
+  color: var(--amber-light);
+}
+.split__text ::selection {
+  background: rgb(251 191 36 / 0.4);
+  color: #fff;
+}
+/* "Simulated, no notifications" is plain visible text, never hidden or small print. */
+.follow__note {
+  max-width: 40rem;
+  margin-top: 1.25rem;
+  padding: 0.8rem 1rem;
+  border-radius: 0 14px 14px 0;
+  background: rgb(255 255 255 / 0.06);
+  box-shadow: inset 3px 0 0 var(--terracotta-light);
+  color: var(--on-slate);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
 .escalation {
   padding: 1.6rem;
+}
+.section--slate .escalation {
+  --focus-ring: var(--cobalt);
+  /* A warm edge along the top of the card. */
+  background:
+    linear-gradient(90deg, var(--amber-mark), var(--terracotta)) top / 100% 4px no-repeat,
+    var(--card);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    0 2px 4px rgb(0 0 0 / 0.2),
+    0 32px 64px -24px rgb(0 0 0 / 0.55);
+  color: var(--ink);
 }
 .escalation__task {
   padding-bottom: 1rem;
@@ -1752,7 +1724,8 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
   bottom: 0.6rem;
   left: 0.7rem;
   width: 2px;
-  background: var(--line);
+  background: var(--line-strong);
+  transform-origin: top;
 }
 .log__entry {
   position: relative;
@@ -1798,12 +1771,22 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
   font-weight: 700;
   white-space: nowrap;
 }
+/* Needs attention: the recorded reminder in amber, the escalation in terracotta.
+   Each also says what it is in words ("Simulated", "Recorded"). */
 .log__entry--reminder .log__dot {
-  border-color: var(--red);
+  border-color: var(--amber-mark);
 }
 .log__entry--reminder .log__status {
-  background: var(--red-soft);
-  color: var(--red);
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+.log__entry--handoff .log__dot {
+  border-color: var(--terracotta);
+  background: radial-gradient(circle, var(--terracotta) 0 32%, #fff 36%);
+}
+.log__entry--handoff .log__status {
+  background: var(--terracotta-soft);
+  color: var(--terracotta-ink);
 }
 .log__entry--approval .log__dot,
 .log__entry--accepted .log__dot,
@@ -2024,16 +2007,35 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
       filter: blur(6px);
     }
   }
-  /* The follow-up log plays in order, like it happened. */
+  /* The follow-up timeline, once, as it comes into view: the line draws down
+     and the entries arrive in the order they happened, about a second in all. */
+  .reveal-ready .escalation .log::before {
+    transition: transform 900ms var(--ease) 250ms;
+  }
+  .reveal-ready .escalation:not(.is-in) .log::before {
+    transform: scaleY(0);
+  }
   .reveal-ready .escalation .log__entry {
     transition:
       opacity var(--dur-base) var(--ease),
       transform var(--dur-base) var(--ease);
-    transition-delay: calc(0.35s + var(--d) * 0.5s);
+    transition-delay: calc(0.25s + var(--d) * 90ms);
   }
   .reveal-ready .escalation:not(.is-in) .log__entry {
     opacity: 0;
-    transform: translateX(-10px);
+    transform: translateY(6px);
+  }
+  /* Choosing a task: the cobalt edge grows in and the ring spreads once.
+     Under 0.5s, so it confirms the tap without holding anything up. */
+  .task[aria-pressed="true"]::before {
+    animation: task-edge 240ms var(--ease) both;
+  }
+  .task[aria-pressed="true"]::after {
+    animation: task-ring 420ms var(--ease);
+  }
+  /* The quoted note line opens out of the selected card. */
+  .task__source {
+    animation: source-in 260ms var(--ease) both;
   }
 }
 /* Reduced motion: no movement, no blur, a short fade only. */
@@ -2056,16 +2058,25 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
   html.intro :is(.hero__eyebrow, .hero__aside) {
     animation: fade-in var(--dur-small) linear both;
   }
+  /* Tasks still answer a press and a selection, by color and edge only. */
   .task,
   .task::after,
   .connector,
+  .connector path,
   .demo-note__mark,
-  .how--pinned .how__step {
+  .draft__more {
     transition: none;
   }
   .task:hover,
   .task.is-active {
     translate: none;
+  }
+  .task:active,
+  .draft__more:active {
+    scale: none;
+  }
+  .demo-note__mark {
+    transform: none;
   }
 }
 @keyframes word-rise {
@@ -2094,14 +2105,28 @@ html.intro:not(.intro-live):not(.intro-done) [data-intro-connector] path {
     transform: scale(3);
   }
 }
+@keyframes task-edge {
+  from {
+    transform: scaleY(0);
+  }
+}
+@keyframes task-ring {
+  from {
+    box-shadow:
+      0 0 0 1.5px var(--cobalt),
+      0 0 0 0 rgb(29 63 158 / 0.3),
+      0 16px 32px -14px rgb(29 63 158 / 0.4);
+  }
+}
+@keyframes source-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
 @keyframes intro-failsafe {
   to {
     opacity: 1;
-  }
-}
-@keyframes intro-failsafe-wipe {
-  to {
-    transform: scaleX(0);
   }
 }
 @keyframes intro-failsafe-line {

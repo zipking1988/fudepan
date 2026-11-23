@@ -1,6 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+} from "react";
+
+import { LABEL_TEXT_EN } from "@/lib/care/rules/labels";
 
 import { DRAFT, NOTE, type NoteLineId } from "./content";
 import { Avatar, RiskLabel } from "./primitives";
@@ -21,8 +30,14 @@ function lineFor(id: NoteLineId): string {
 export function DraftDemo() {
   const [selected, setSelected] = useState<NoteLineId | null>(null);
   const [hovered, setHovered] = useState<NoteLineId | null>(null);
-  // Phones show two tasks first, so the picture fits on the first screen.
+  // Phones show two tasks first, then a button for the rest.
   const [expanded, setExpanded] = useState(false);
+  // Hover previews a task for a mouse only. Touch screens fire pointerenter on
+  // tap, which would keep a card highlighted after it has been deselected.
+  const preview = (id: NoteLineId) => (event: PointerEvent) => {
+    if (event.pointerType === "mouse") setHovered(id);
+  };
+  const endPreview = () => setHovered(null);
   const demoRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const intro = useRef<Intro | null>(null);
@@ -129,9 +144,10 @@ export function DraftDemo() {
           ))}
         </svg>
 
-        <figure className="demo-note" aria-labelledby="demo-note-caption" data-intro-note>
+        {/* Grandma's note is never hidden by the entrance: it is where every task starts. */}
+        <figure className="demo-note" aria-labelledby="demo-note-caption">
           <div className="demo-note__paper">
-            <span aria-hidden="true" className="demo-note__magnet" data-intro-magnet />
+            <span aria-hidden="true" className="demo-note__magnet" />
             <span aria-hidden="true" className="demo-note__scan" data-intro-scan />
             <blockquote className="demo-note__text" lang="en">
               {NOTE.lines.map((line, i) => (
@@ -140,20 +156,18 @@ export function DraftDemo() {
                   className={`demo-note__line ${active === line.id ? "is-active" : ""}`}
                   data-line={line.id}
                   style={{ "--i": i } as CSSProperties}
-                  onMouseEnter={() => setHovered(line.id)}
-                  onMouseLeave={() => setHovered(null)}
+                  onPointerEnter={preview(line.id)}
+                  onPointerLeave={endPreview}
                 >
                   <span aria-hidden="true" className="demo-note__mark" data-intro-mark />
                   <span className="demo-note__words">
                     {line.text}
                     <span aria-hidden="true" data-line-end />
                   </span>
-                  <span aria-hidden="true" className="demo-note__wipe" data-intro-wipe />
                 </p>
               ))}
               <p className="demo-note__line demo-note__sign">
                 <span className="demo-note__words">{NOTE.signature}</span>
-                <span aria-hidden="true" className="demo-note__wipe" data-intro-wipe />
               </p>
             </blockquote>
           </div>
@@ -186,8 +200,8 @@ export function DraftDemo() {
                   aria-pressed={selected === task.id}
                   data-task={task.id}
                   onClick={() => setSelected((s) => (s === task.id ? null : task.id))}
-                  onMouseEnter={() => setHovered(task.id)}
-                  onMouseLeave={() => setHovered(null)}
+                  onPointerEnter={preview(task.id)}
+                  onPointerLeave={endPreview}
                 >
                   <span className="task__title">{task.title}</span>
                   <span className="task__meta">
@@ -199,9 +213,29 @@ export function DraftDemo() {
                     ) : (
                       <span className="task__owner task__owner--none">{DRAFT.unowned}</span>
                     )}
-                    <span className="task__due">{task.due}</span>
+                    {!task.dueLabel && <span className="task__due">{task.due}</span>}
                     <RiskLabel risk={task.risk} />
+                    {task.gate && <span className="task__approval">{LABEL_TEXT_EN.requiresConfirmation}</span>}
                   </span>
+                  {/* The family's own deadline and the appointment time, never merged. */}
+                  {task.dueLabel && (
+                    <span className="task__meta">
+                      <span className="task__due" data-due>
+                        <span className="task__due-label">{task.dueLabel}:</span> {task.due}
+                      </span>
+                      {task.appointment && (
+                        <span className="task__due" data-appointment>
+                          <span className="task__due-label">{DRAFT.appointmentLabel}:</span>{" "}
+                          {task.appointment}
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {task.gate && (
+                    <span className="task__ask" data-gate>
+                      <span className="task__ask-label">{DRAFT.gateLabel}</span> {task.gate}
+                    </span>
+                  )}
                   {task.question && (
                     <span className="task__ask" data-intro-ask>
                       <span className="task__ask-label">{DRAFT.missing}</span> {task.question}

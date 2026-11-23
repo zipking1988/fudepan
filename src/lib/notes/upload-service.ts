@@ -276,7 +276,7 @@ export function createNoteUploadService(deps: {
   async function complete(
     user: SessionUser | null,
     rawInput: unknown,
-  ): Promise<ServiceResult<{ noteId: string }>> {
+  ): Promise<ServiceResult<{ noteId: string; alreadyCompleted?: true }>> {
     if (!user) {
       log("warn", "note_upload.signed_out", { stage: "complete" });
       return failure("signed_out");
@@ -296,7 +296,7 @@ export function createNoteUploadService(deps: {
       log("warn", "note_upload.reservation_not_found", { user_id: user.id, note_id: noteId });
       return failure("not_found");
     }
-    if (reservation.status === "completed") return { ok: true, noteId };
+    if (reservation.status === "completed") return { ok: true, noteId, alreadyCompleted: true };
     if (reservation.status !== "pending") return failure("expired");
     if (reservation.expiresAt.getTime() <= now().getTime()) {
       await failReservation(reservation, user, "verify", "expired");
@@ -352,7 +352,9 @@ export function createNoteUploadService(deps: {
         const latest = await safely("find_reservation", { note_id: noteId }, () =>
           store.findReservation(noteId, user.id),
         );
-        return latest?.status === "completed" ? { ok: true, noteId } : failure("expired");
+        return latest?.status === "completed"
+          ? { ok: true, noteId, alreadyCompleted: true }
+          : failure("expired");
       }
       case "expired":
         await failReservation(reservation, user, "save", "expired");

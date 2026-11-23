@@ -18,9 +18,9 @@ const second: Membership = {
 };
 
 describe("canUploadNotes", () => {
-  it("lets every active role upload except the care recipient, who reads only", () => {
+  it("lets every active role upload, including the care recipient", () => {
     for (const role of HOUSEHOLD_ROLES) {
-      expect(canUploadNotes(role), role).toBe(role !== "care_recipient");
+      expect(canUploadNotes(role), role).toBe(true);
     }
   });
 });
