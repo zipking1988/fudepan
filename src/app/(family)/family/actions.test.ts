@@ -34,6 +34,7 @@ import {
   retryRecognition,
   saveAppointmentDetails,
   savePartAmount,
+  sendRecipientReply,
   setLanguage,
   volunteerBackup,
   addTextEvidence,
@@ -292,6 +293,45 @@ describe("saveAppointmentDetails", () => {
   it("refuses a signed-out person without calling the database", async () => {
     getSession.mockResolvedValue({ user: null, supabase: { from } });
     expect(await saveAppointmentDetails(input)).toEqual({ ok: false, messageKey: "refusal.signedOut", params: {} });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+});
+
+describe("sendRecipientReply", () => {
+  it("sends one of the two fixed replies and revalidates the family views", async () => {
+    rpc.mockResolvedValue({ data: { outcome: "sent", note_id: NOTE, audit_event_id: U(9) }, error: null });
+    const result = await sendRecipientReply({ noteId: NOTE, reply: "question" });
+    expect(result).toEqual({ ok: true, outcome: "sent", messageKey: "recipient.reply.sent" });
+    expect(rpc).toHaveBeenCalledWith("send_recipient_reply", { p_note_id: NOTE, p_user_id: USER.id, p_reply: "question" });
+    for (const path of [...paths, `/family/me/${NOTE}`]) expect(revalidatePath).toHaveBeenCalledWith(path);
+  });
+
+  it("tells her when the family already has the same message", async () => {
+    rpc.mockResolvedValue({ data: { outcome: "already_sent", note_id: NOTE, audit_event_id: null }, error: null });
+    expect(await sendRecipientReply({ noteId: NOTE, reply: "thanks" })).toMatchObject({
+      ok: true,
+      messageKey: "recipient.reply.alreadySent",
+    });
+  });
+
+  it("refuses free text without calling the database", async () => {
+    const result = await sendRecipientReply({ noteId: NOTE, reply: "Please bring soup" });
+    expect(result).toMatchObject({ ok: false, messageKey: "refusal.invalidInput" });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps 'only the recipient can reply' to a plain key and does not revalidate", async () => {
+    rpc.mockResolvedValue({ data: null, error: { message: "recipient_only", code: "P0001" } });
+    expect(await sendRecipientReply({ noteId: NOTE, reply: "thanks" })).toMatchObject({
+      ok: false,
+      messageKey: "refusal.recipientOnly",
+    });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("refuses a signed-out person", async () => {
+    getSession.mockResolvedValue({ user: null, supabase: { from } });
+    expect(await sendRecipientReply({ noteId: NOTE, reply: "thanks" })).toMatchObject({ ok: false, messageKey: "refusal.signedOut" });
     expect(rpc).not.toHaveBeenCalled();
   });
 });

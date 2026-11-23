@@ -17,6 +17,7 @@ export const en = {
   "refusal.signedOut": "You must be signed in.",
   "refusal.notFoundOrNoAccess": "We could not find this task, or you do not have access to it.",
   "refusal.recipientReadOnly": "This account can read this task but cannot change it.",
+  "refusal.recipientOnly": "Only the person the note is for can send this reply.",
   "refusal.notPrimaryCaregiver": "Only a primary caregiver can do this.",
   "refusal.selfApprovalBlocked":
     "Another primary caregiver needs to confirm this task because you are taking part in it.",
@@ -277,6 +278,7 @@ export const en = {
   "timeline.time_confirmed": "The time was confirmed",
   "timeline.missing_detail_resolved": "A missing detail was filled in",
   "timeline.member_language_changed": "A member changed their language",
+  "timeline.recipient_replied": "Sent a reply to the family",
   "timeline.reminder_sent": "A reminder was sent",
   "timeline.owner_assigned": "A responsible person was assigned",
   "timeline.step_approved": "Confirmed by a family member",

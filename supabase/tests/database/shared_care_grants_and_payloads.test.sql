@@ -19,7 +19,7 @@
 -- household. All new rows are fake and rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(278);
+select plan(282);
 
 -- ---------------------------------------------------------------------------
 -- 1. Grants and search_path (programmatic, over the exact signatures)
@@ -75,7 +75,9 @@ insert into fn_list (sig) values
   ('private.draft_timestamptz(jsonb, text)'),
   ('private.fail_run_locked(public.recognition_runs, text, boolean)'),
   -- escalation (migration 20261210000500, task 18.1)
-  ('public.escalate_due_parts(uuid, timestamptz)');
+  ('public.escalate_due_parts(uuid, timestamptz)'),
+  -- recipient replies (migration 20261210000600, decision D17)
+  ('public.send_recipient_reply(uuid, uuid, text)');
 
 select ok(to_regprocedure(sig) is not null, 'Function exists: ' || sig)
 from fn_list order by sig;
@@ -479,7 +481,8 @@ insert into payload_allow (event_type, keys) values
   ('part.reopened', array[]::text[]),
   ('part.escalated', array['reason']),
   ('reminder.sent', array['channel', 'recipient_member_id', 'kind']),
-  ('member.language_changed', array['language']);
+  ('member.language_changed', array['language']),
+  ('recipient.replied', array['reply']);
 
 select is_empty(
   $$ select a.event_type from public.audit_events a join seq_audit s on s.id = a.id

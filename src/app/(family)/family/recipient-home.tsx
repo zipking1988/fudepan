@@ -21,5 +21,5 @@ export async function RecipientHome({
   const events = loaded.filter(
     (e): e is SharedCareEvent => e !== null && e.householdId === context.householdId,
   );
-  return <RecipientHomeView events={events} language={context.language} />;
+  return <RecipientHomeView events={events} language={context.language} recipientName={context.displayName} />;
 }

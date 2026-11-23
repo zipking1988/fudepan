@@ -59,6 +59,9 @@ export type PartOutcome = {
 export type PartActionResult = ({ ok: true } & PartOutcome) | PartActionFailure;
 export type PartActionDoneResult = { ok: true } | PartActionFailure;
 export type PartActionCountResult = { ok: true; count: number } | PartActionFailure;
+/** A Care_Recipient reply: sent now, or the family already has the same message (Requirement 13.11). */
+export type RecipientReplyOutcome = "sent" | "already_sent";
+export type PartActionReplyResult = { ok: true; outcome: RecipientReplyOutcome } | PartActionFailure;
 
 // ---------------------------------------------------------------------------
 // Input schemas
@@ -123,6 +126,8 @@ export const partActionInputs = {
   resolveMissingDetail: z.object({ detailId: ID, answer: z.string().trim().min(1).max(500) }),
   markFeedSeen: z.object({ householdId: ID, seenAt: z.iso.datetime({ offset: true }).optional() }),
   setLanguage: z.object({ householdId: ID, language: z.enum(["en", "ja"]) }),
+  // Fixed replies only; never free text (Requirement 13.8).
+  sendReply: z.object({ noteId: ID, reply: z.enum(["thanks", "question"]) }),
 } as const;
 
 type Input<K extends keyof typeof partActionInputs> = z.output<(typeof partActionInputs)[K]>;
@@ -156,6 +161,7 @@ export interface PartActionStore {
   ): Promise<StoreResult<PartOutcome>>;
   markFeedSeen(input: WithUser<Input<"markFeedSeen">>): Promise<StoreResult<null>>;
   setLanguage(input: WithUser<Input<"setLanguage">>): Promise<StoreResult<null>>;
+  sendReply(input: WithUser<Input<"sendReply">>): Promise<StoreResult<RecipientReplyOutcome>>;
 }
 
 type PartActionName = keyof PartActionStore;
@@ -305,6 +311,10 @@ export function createPartActionService(deps: { store: PartActionStore; log: Log
       done("markFeedSeen", i.markFeedSeen, user, input, (p) => store.markFeedSeen(p)),
     setLanguage: (user: SessionUser | null, input: unknown) =>
       done("setLanguage", i.setLanguage, user, input, (p) => store.setLanguage(p)),
+    async sendReply(user: SessionUser | null, input: unknown): Promise<PartActionReplyResult> {
+      const result = await run("sendReply", i.sendReply, user, input, (p) => store.sendReply(p));
+      return result.ok ? { ok: true, outcome: result.value } : result;
+    },
   };
 }
 
@@ -376,6 +386,10 @@ export function createSupabasePartActionStore(admin: Client, log: Logger): PartA
   const parseCount = (data: unknown) => {
     const parsed = z.number().int().nonnegative().safeParse(data);
     return parsed.success ? parsed.data : undefined;
+  };
+  const parseReply = (data: unknown): RecipientReplyOutcome | undefined => {
+    const parsed = z.object({ outcome: z.enum(["sent", "already_sent"]) }).safeParse(data);
+    return parsed.success ? parsed.data.outcome : undefined;
   };
   // Functions returning void send null.
   const parseVoid = (data: unknown) => (data === null || data === undefined ? null : undefined);
@@ -529,6 +543,12 @@ export function createSupabasePartActionStore(admin: Client, log: Logger): PartA
             p_language: language,
           }),
         parseVoid,
+      ),
+    sendReply: ({ noteId, reply, userId }) =>
+      execute(
+        "sendReply",
+        () => admin.rpc("send_recipient_reply", { p_note_id: noteId, p_user_id: userId, p_reply: reply }),
+        parseReply,
       ),
   };
 }

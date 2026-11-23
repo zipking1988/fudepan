@@ -8,6 +8,8 @@ export const REFUSAL_MESSAGE_KEYS = {
   part_not_found: "refusal.notFoundOrNoAccess",
   request_not_found: "refusal.notFoundOrNoAccess",
   recipient_read_only: "refusal.recipientReadOnly",
+  // Only the Care_Recipient sends a Recipient_Reply (Requirement 13.10).
+  recipient_only: "refusal.recipientOnly",
   not_primary_caregiver: "refusal.notPrimaryCaregiver",
   self_approval_blocked: "refusal.selfApprovalBlocked",
   resubmission_required: "refusal.resubmissionRequired",

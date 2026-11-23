@@ -17,6 +17,7 @@ export const ja: Messages = {
   "refusal.signedOut": "ログインが必要です。",
   "refusal.notFoundOrNoAccess": "このやることが見つからないか、見る権限がありません。",
   "refusal.recipientReadOnly": "このアカウントでは内容を見ることはできますが、変更はできません。",
+  "refusal.recipientOnly": "この返事は、メモを書いたご本人だけが送れます。",
   "refusal.notPrimaryCaregiver": "これは主な介護者だけができます。",
   "refusal.selfApprovalBlocked":
     "あなたもこのやることに関わっているため、ほかの主な介護者に確認してもらう必要があります。",
@@ -275,6 +276,7 @@ export const ja: Messages = {
   "timeline.time_confirmed": "時間を確定しました",
   "timeline.missing_detail_resolved": "足りない情報が入りました",
   "timeline.member_language_changed": "メンバーが言語を変えました",
+  "timeline.recipient_replied": "家族に返事を送りました",
   "timeline.reminder_sent": "リマインダーを送りました",
   "timeline.owner_assigned": "担当の人が決まりました",
   "timeline.step_approved": "家族の方が確認しました",

@@ -1217,6 +1217,10 @@ export type Database = {
         }
         Returns: Json
       }
+      send_recipient_reply: {
+        Args: { p_note_id: string; p_reply: string; p_user_id: string }
+        Returns: Json
+      }
       set_member_language: {
         Args: { p_household_id: string; p_language: string; p_user_id: string }
         Returns: undefined

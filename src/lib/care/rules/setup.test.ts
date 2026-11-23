@@ -7,7 +7,7 @@ describe("refusal message keys", () => {
   const codes = Object.keys(REFUSAL_MESSAGE_KEYS) as RefusalCode[];
 
   it("gives every refusal code a non-empty message key", () => {
-    expect(codes.length).toBe(26);
+    expect(codes.length).toBe(27);
     for (const code of codes) {
       expect(refusalMessageKey(code)).toMatch(/^refusal\.[A-Za-z]+$/);
     }

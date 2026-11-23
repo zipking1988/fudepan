@@ -223,9 +223,11 @@ select results_eq(
   $$ values ('c2000000-0000-4000-8000-000000000001'::uuid) $$,
   'Member sees only their household evidence'
 );
-select results_eq(
-  'select id from public.part_missing_details',
-  $$ values ('c3000000-0000-4000-8000-000000000001'::uuid) $$,
+-- Scoped to the fixture and the household boundary: the demo household may
+-- also hold real QA drafts on a local database.
+select ok(
+  exists (select 1 from public.part_missing_details where id = 'c3000000-0000-4000-8000-000000000001')
+  and not exists (select 1 from public.part_missing_details where household_id <> 'd0000000-0000-4000-8000-000000000001'),
   'Member sees only their household missing details'
 );
 select results_eq(
@@ -233,9 +235,13 @@ select results_eq(
   $$ values ('c4000000-0000-4000-8000-000000000001'::uuid) $$,
   'Member sees only their household resubmissions'
 );
-select results_eq(
-  'select id from public.feed_items',
-  $$ values ('c5000000-0000-4000-8000-000000000001'::uuid) $$,
+select ok(
+  exists (select 1 from public.feed_items where id = 'c5000000-0000-4000-8000-000000000001')
+  and not exists (select 1 from public.feed_items where id = 'c5000000-0000-4000-8000-000000000002')
+  and not exists (select 1 from public.feed_items where household_id <> 'd0000000-0000-4000-8000-000000000001')
+  and not exists (select 1 from public.feed_items
+                  where recipient_member_id is not null
+                    and recipient_member_id <> 'd2000000-0000-4000-8000-000000000002'),
   'Member sees the household feed item and not a reminder addressed to someone else'
 );
 select is_empty(
@@ -344,10 +350,12 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "d1000000-0000-4000-8000-000000000003", "role": "authenticated"}';
 
-select results_eq(
-  'select id from public.feed_items order by id',
-  $$ values ('c5000000-0000-4000-8000-000000000001'::uuid),
-            ('c5000000-0000-4000-8000-000000000002'::uuid) $$,
+select ok(
+  exists (select 1 from public.feed_items where id = 'c5000000-0000-4000-8000-000000000001')
+  and exists (select 1 from public.feed_items where id = 'c5000000-0000-4000-8000-000000000002')
+  and not exists (select 1 from public.feed_items
+                  where recipient_member_id is not null
+                    and recipient_member_id <> 'd2000000-0000-4000-8000-000000000003'),
   'The addressed member sees the household item and their own reminder'
 );
 select results_eq(
@@ -361,9 +369,12 @@ reset role;
 set local role authenticated;
 set local request.jwt.claims = '{"sub": "d1000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select results_eq(
-  'select id from public.feed_items',
-  $$ values ('c5000000-0000-4000-8000-000000000001'::uuid) $$,
+select ok(
+  exists (select 1 from public.feed_items where id = 'c5000000-0000-4000-8000-000000000001')
+  and not exists (select 1 from public.feed_items where id = 'c5000000-0000-4000-8000-000000000002')
+  and not exists (select 1 from public.feed_items
+                  where recipient_member_id is not null
+                    and recipient_member_id <> 'd2000000-0000-4000-8000-000000000001'),
   'The care recipient does not see a reminder addressed to another member'
 );
 

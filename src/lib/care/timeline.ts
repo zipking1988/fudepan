@@ -116,6 +116,7 @@ const EVENT_LABEL_KEYS: Record<string, string> = {
   "time.confirmed": "timeline.time_confirmed",
   "missing_detail.resolved": "timeline.missing_detail_resolved",
   "member.language_changed": "timeline.member_language_changed",
+  "recipient.replied": "timeline.recipient_replied",
   "reminder.sent": "timeline.reminder_sent",
   "owner_assigned": "timeline.owner_assigned",
   "step_approved": "timeline.step_approved",
@@ -154,7 +155,7 @@ export type TimelineEntry = {
 const TOKEN = /^[a-z][a-z0-9_]{0,31}$/;
 const ZONE = /^[A-Za-z][A-Za-z0-9_+-]*(\/[A-Za-z0-9_+-]+){0,2}$/;
 const COUNT_KEYS = ["missing_count", "evidence_count", "step_count", "step_index", "plan_version"];
-const TOKEN_KEYS = ["role", "kind", "state", "language", "reason_code"];
+const TOKEN_KEYS = ["role", "kind", "state", "language", "reason_code", "reply"];
 const FLAG_KEYS = ["self_approval", "volunteered", "needs_attention"];
 
 /** Keeps only allow-listed, shape-checked payload fields. */

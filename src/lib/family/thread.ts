@@ -69,8 +69,11 @@ export function buildThread(input: {
   event: SharedCareEvent;
   timeline: readonly TimelineEntry[];
   viewerName: string | null;
+  /** How Fudepan names the person the note is for ("Haruko", "春子さん"). */
+  recipientName?: string;
 }): ThreadItem[] {
   const { event, timeline, viewerName } = input;
+  const name = input.recipientName ?? "";
   const items: ThreadItem[] = [];
   const uploaded = timeline.find((e) => e.type === "note.uploaded");
   items.push({ kind: "photo", id: "photo", at: uploaded?.at ?? event.createdAt, actorName: uploaded?.actorName ?? null });
@@ -91,7 +94,7 @@ export function buildThread(input: {
     id: "found",
     at: read?.at ?? null,
     key: questions.length > 0 ? "thread.bot.found" : "thread.bot.foundNoMissing",
-    params: { count: event.parts.length, missing: questions.length },
+    params: { name, count: event.parts.length, missing: questions.length },
   });
 
   // Step by step: only the first open question is asked; the rest wait their turn.
@@ -120,7 +123,7 @@ export function buildThread(input: {
   }
 
   if (event.done) {
-    items.push({ kind: "bot", id: "status", at: null, key: "thread.bot.allDone" });
+    items.push({ kind: "bot", id: "status", at: null, key: "thread.bot.allDone", params: { name } });
   } else {
     const needs = threadNeeds(event);
     const anything = needs.unclaimed + needs.missing + needs.awaitingConfirmation > 0;
@@ -129,7 +132,7 @@ export function buildThread(input: {
       id: "status",
       at: null,
       key: anything ? "thread.bot.stillNeeded" : "thread.bot.nothingNeeded",
-      params: { ...needs },
+      params: { name, ...needs },
     });
   }
   return items;

@@ -104,6 +104,7 @@ describe("ThreadView", () => {
     expect(html).toContain('aria-label="Conversation about this note"');
     expect(html).toContain('alt="Photo of the handwritten note"');
     expect(html).toContain("Things to do: 1. Details the note does not say: 1."); // fixed sentence with counts
+    expect(html).toContain("I read your family member's note.");
     expect(html).toContain("Which clinic or hospital is it?");
     expect(html).toContain("The note says to ask Misa. This is only a hint.");
     expect(html).toContain("This is the last open question.");
@@ -137,7 +138,7 @@ describe("ThreadView", () => {
       event([part({ approvalState: "approved", progressStatus: "completed", missingDetails: [] })], { done: true }),
     );
     expect(done).not.toContain("Requires confirmation");
-    expect(done).toContain("Everything is done.");
+    expect(done).toContain("Everything on your family member's note is done.");
     expect(done).not.toContain('aria-label="Quick replies"');
   });
 
@@ -154,10 +155,35 @@ describe("ThreadView", () => {
     expect(html).not.toContain('aria-label="Quick replies"');
   });
 
+  it("speaks as Grandma's assistant and shows her reply as her message", () => {
+    const reply: TimelineEntry = {
+      id: "e9", type: "recipient.replied", labelKey: "timeline.recipient_replied", params: { reply: "question" },
+      at: "2026-11-23T12:20:00Z", actorName: "Haruko (Mom)", actorType: "human", stepTitle: null,
+    };
+    const html = renderToStaticMarkup(
+      <ThreadView
+        event={event([part()])}
+        timeline={[...timeline, reply]}
+        viewerName="Kenta"
+        recipientName="Haruko (Mom)"
+        viewer={{ memberId: ME, householdId: HOUSEHOLD, role: "family_member" }}
+        members={members}
+        language="en"
+        nowIso="2026-11-23T12:30:00Z"
+        actions={actions}
+        onChanged={() => {}}
+      />,
+    ).replaceAll("&#x27;", "'");
+    expect(html).toContain("I read Haruko's note.");
+    expect(html).toContain("To help Haruko, still needed.");
+    expect(html).toContain("🙋 I have a question. Please call or visit me.");
+    expect(html).not.toContain("(Mom)'s");
+  });
+
   it("renders in Japanese", () => {
     const html = render(event([part()]), "family_member", "ja");
     expect(html).toContain("このメモについての会話");
-    expect(html).toContain("やることが1件見つかりました");
+    expect(html).toContain("ご家族のメモを読みました。やることが1件");
     expect(html).toContain("タップだけで使えます");
     expect(html).not.toContain("Quick replies");
   });

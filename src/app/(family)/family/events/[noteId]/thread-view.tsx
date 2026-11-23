@@ -18,6 +18,8 @@ import { AmountForm, AnswerForm, AppointmentForm, DeadlineForm } from "./part-fo
 export type ThreadViewProps = EventViewProps & {
   timeline: readonly TimelineEntry[];
   viewerName: string | null;
+  /** Display name of the household's care recipient, if there is one. */
+  recipientName?: string | null;
 };
 
 const READING_REFRESH_MS = 5000;
@@ -238,7 +240,19 @@ function ThreadPart({ part, props, tr }: { part: EventPart; props: ThreadViewPro
   );
 }
 
+/** "Haruko (Mom)" -> "Haruko"; Japanese adds さん. Falls back to a neutral phrase. */
+export function personName(displayName: string | null, tr: Translator): string {
+  const base = (displayName ?? "").replace(/\s*[(（].*?[)）]\s*/g, " ").trim();
+  if (!base) return tr.t("thread.recipientFallback");
+  return tr.lang === "ja" ? `${base}さん` : base;
+}
+
 function activityText(tr: Translator, entry: TimelineEntry): string {
+  if (entry.type === "recipient.replied") {
+    const reply = entry.params.reply;
+    if (reply === "thanks") return `👍 ${tr.t("thread.reply.thanks")}`;
+    if (reply === "question") return `🙋 ${tr.t("thread.reply.question")}`;
+  }
   const label = isMessageKey(entry.labelKey) ? tr.t(entry.labelKey) : tr.t("timeline.unknown_event");
   return entry.stepTitle ? `${label}: ${entry.stepTitle}` : label;
 }
@@ -316,7 +330,12 @@ function ReadingRefresh({ onChanged }: { onChanged: () => void }) {
 export function ThreadView(props: ThreadViewProps) {
   const { event, timeline, viewerName, viewer, language, actions, onChanged } = props;
   const tr = createTranslator(language);
-  const items = buildThread({ event, timeline, viewerName });
+  const items = buildThread({
+    event,
+    timeline,
+    viewerName,
+    recipientName: personName(props.recipientName ?? null, tr),
+  });
   const partById = new Map(event.parts.map((p) => [p.id, p]));
   const hasQuestion = items.some((i) => i.kind === "question");
   const canAnswer = viewer.role !== "care_recipient";

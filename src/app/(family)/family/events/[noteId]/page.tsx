@@ -55,6 +55,7 @@ async function EventContent({ params }: { params: PageProps<"/family/events/[not
       nowIso={new Date().toISOString()}
       timeline={timeline}
       viewerName={context.displayName}
+      recipientName={options.find((m) => m.role === "care_recipient")?.displayName ?? null}
     />
   );
 }

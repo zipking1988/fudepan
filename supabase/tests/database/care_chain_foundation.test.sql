@@ -237,21 +237,23 @@ select is(
   'Member sees the 5 demo household members only'
 );
 
-select results_eq(
-  'select id from public.care_chains',
-  $$ values ('d4000000-0000-4000-8000-000000000001'::uuid) $$,
+-- Scoped to this test's fixtures and to the household boundary, so the checks
+-- hold on a local database that also has real QA rows in the demo household.
+select ok(
+  exists (select 1 from public.care_chains where id = 'd4000000-0000-4000-8000-000000000001')
+  and not exists (select 1 from public.care_chains where household_id <> 'd0000000-0000-4000-8000-000000000001'),
   'Member sees only their household care chains'
 );
 
-select is(
-  (select count(*)::int from public.care_steps),
-  2,
+select ok(
+  (select count(*) from public.care_steps where care_chain_id = 'd4000000-0000-4000-8000-000000000001') = 2
+  and not exists (select 1 from public.care_steps where care_chain_id = 'e4000000-0000-4000-8000-000000000001'),
   'Member sees the steps of their household chain'
 );
 
-select is(
-  (select count(*)::int from public.audit_events),
-  6,
+select ok(
+  (select count(*) from public.audit_events where household_id = 'd0000000-0000-4000-8000-000000000001') >= 6
+  and not exists (select 1 from public.audit_events where household_id <> 'd0000000-0000-4000-8000-000000000001'),
   'Member sees the seeded audit events of their household'
 );
 

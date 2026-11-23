@@ -1,9 +1,16 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { meRouteDecision } from "@/lib/family/recipient-routing";
 import type { EventPart, SharedCareEvent } from "@/lib/family/shared-care-event";
 import { HOUSEHOLD_ROLES } from "@/lib/households/membership";
-import { RecipientEventView, RecipientHomeView } from "./recipient-view";
+import { assistantMood, firstName, forGrandma, pickComingUp, RecipientEventView, RecipientHomeView } from "./recipient-view";
+
+vi.mock("./actions", () => ({ sendRecipientReply: vi.fn() }));
+
+/** The only buttons Grandma gets are the two fixed replies (Requirement 13.8). */
+function buttonLabels(html: string): string[] {
+  return [...html.matchAll(/<button[^>]*>([\s\S]*?)<\/button>/g)].map((m) => m[1].replace(/<[^>]*>/g, "").trim());
+}
 
 const NOTE = "11111111-1111-4111-8111-111111111111";
 const noTimes = { appointment: null, respondBy: null, taskDue: null };
@@ -60,13 +67,21 @@ function event(over: Partial<SharedCareEvent> = {}): SharedCareEvent {
 const INTERNAL = /\b(part|chain|approval|escalated|confidence)\b/i;
 
 describe("RecipientHomeView", () => {
-  const html = renderToStaticMarkup(<RecipientHomeView events={[event()]} language="en" />);
+  const html = renderToStaticMarkup(<RecipientHomeView events={[event()]} language="en" recipientName="Haruko (Mom)" />);
 
-  it("has one big photo link and no buttons, forms or inputs", () => {
+  it("has one big photo link and only the two fixed reply buttons: no forms, inputs or free text", () => {
     expect(html).toContain('href="/family/capture"');
     expect(html).toContain("Take a photo of a note");
     expect(html).toContain("family-recipient__photo");
-    expect(html).not.toMatch(/<(button|form|input|textarea|select)\b/);
+    expect(buttonLabels(html)).toEqual(["👍 Thank you", "🙋 I have a question"]);
+    expect(html).not.toMatch(/<(form|input|textarea|select)\b/);
+  });
+
+  it("greets her by name and speaks as her assistant", () => {
+    expect(html).toContain("Hello, Haruko.");
+    expect(html).not.toContain("(Mom)");
+    expect(html).toContain("I read your note. Your family is taking care of it.");
+    expect(html).toContain("Coming up");
   });
 
   it("shows plain sentences for the clinic visit and links to the detail page", () => {
@@ -89,15 +104,21 @@ describe("RecipientHomeView", () => {
     );
     expect(done).toContain("Done.");
     expect(done).not.toContain("which clinic");
+    expect(done).toContain("Everything on your notes is done. You can rest.");
+    expect(buttonLabels(done)).toEqual([]); // nothing coming up, so nothing to reply to here
     const reading = renderToStaticMarkup(
       <RecipientHomeView events={[event({ state: "reading", title: "Secret title", parts: [] })]} language="en" />,
     );
     expect(reading).not.toContain("Secret title");
     expect(reading).toContain("Your family is reading your note.");
+    expect(reading).toContain("I'm reading your note now.".replace("'", "&#x27;"));
   });
 
-  it("says so when there are no notes", () => {
-    expect(renderToStaticMarkup(<RecipientHomeView events={[]} language="en" />)).toContain("No notes yet.");
+  it("invites a first photo when there are no notes", () => {
+    const empty = renderToStaticMarkup(<RecipientHomeView events={[]} language="en" />);
+    expect(empty).toContain("Hello.");
+    expect(empty).toContain("When you write a note, take a photo of it.");
+    expect(empty).toContain('href="/family/capture"');
   });
 });
 
@@ -105,14 +126,15 @@ describe("RecipientEventView", () => {
   const html = renderToStaticMarkup(<RecipientEventView event={event()} language="en" />);
   const text = html.replace(/<[^>]*>/g, " ");
 
-  it("has sentences, a photo with alt text, a back link and only the photo action", () => {
+  it("has sentences, a photo with alt text, a back link, the photo action and the two replies", () => {
     expect(html).toContain("The time is not confirmed yet.");
     expect(html).toContain("which clinic");
     expect(html).toContain(`src="/notes/${NOTE}/image"`);
     expect(html).toContain('alt="The photo of your note, as you sent it"');
     expect(html).toContain('href="/family"');
     expect(html).toContain('href="/family/capture"');
-    expect(html).not.toMatch(/<(button|form|input|textarea|select)\b/);
+    expect(buttonLabels(html)).toEqual(["👍 Thank you", "🙋 I have a question"]);
+    expect(html).not.toMatch(/<(form|input|textarea|select)\b/);
     expect(html).not.toContain("/timeline");
   });
 
@@ -127,6 +149,56 @@ describe("RecipientEventView", () => {
     );
     expect(done).toContain("Done.");
     expect(done).not.toContain("Visit the clinic");
+  });
+});
+
+describe("Grandma's assistant helpers", () => {
+  it("drops the family's note in brackets from her name", () => {
+    expect(firstName("Haruko (Mom)")).toBe("Haruko");
+    expect(firstName("春子（母）")).toBe("春子");
+    expect(firstName(null)).toBe("");
+  });
+
+  it("puts the open note with the soonest confirmed time first", () => {
+    const at = (iso: string) => ({ ...noTimes, appointment: { at: iso, timeZone: "Asia/Tokyo", provenance: "human_confirmed" as const } });
+    const later = event({ noteId: "n-later", parts: [part({ confirmed: at("2030-02-01T01:00:00Z") })] });
+    const sooner = event({ noteId: "n-sooner", parts: [part({ confirmed: at("2030-01-05T01:00:00Z") })] });
+    const done = event({ noteId: "n-done", done: true });
+    expect(pickComingUp([later, done, sooner])?.noteId).toBe("n-sooner");
+    expect(pickComingUp([done])).toBeNull();
+  });
+
+  it("keeps the card calm: no repeated lines and no family-only details", () => {
+    const lines = forGrandma([
+      { key: "recipient.missing.which_clinic" },
+      { key: "recipient.checking" },
+      { key: "recipient.missing.which_clinic" },
+      { key: "recipient.missing.when_is_deadline" },
+      { key: "recipient.missing.which_person" },
+      { key: "recipient.checking" },
+      { key: "recipient.helper.driver", params: { name: "Kenta" } },
+    ]);
+    expect(lines.map((l) => l.key)).toEqual([
+      "recipient.missing.which_clinic",
+      "recipient.checking",
+      "recipient.helper.driver",
+    ]);
+  });
+
+  it("knows what to say for each situation", () => {
+    expect(assistantMood([])).toBe("nothingYet");
+    expect(assistantMood([event({ state: "reading", parts: [] })])).toBe("reading");
+    expect(assistantMood([event()])).toBe("onIt");
+    expect(assistantMood([event({ done: true })])).toBe("allDone");
+  });
+
+  it("speaks polite Japanese, with her name as written", () => {
+    const ja = renderToStaticMarkup(<RecipientHomeView events={[event()]} language="ja" recipientName="春子" />);
+    expect(ja).toContain("春子さん、こんにちは。");
+    expect(ja).toContain("メモを読みました。ご家族が対応しています。");
+    expect(ja).toContain("次の予定");
+    expect(ja).toContain("ありがとう");
+    expect(ja).toContain("聞きたいことがあります");
   });
 });
 

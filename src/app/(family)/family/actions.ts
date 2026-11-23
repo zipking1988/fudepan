@@ -298,6 +298,27 @@ export async function setLanguage(input: unknown): Promise<FamilyActionResult> {
   return { ok: true };
 }
 
+/**
+ * The Care_Recipient's fixed reply about a note: "Thank you" or "I have a question"
+ * (Requirement 13.8 to 13.11). The SQL function checks the role and household at
+ * processing time, records one audit event, and reminds every active primary caregiver.
+ */
+export async function sendRecipientReply(input: unknown): Promise<FamilyActionResult> {
+  const { user } = await getSession();
+  if (!user) return { ok: false, messageKey: "refusal.signedOut", params: {} };
+  const { partActions } = services();
+  const result = await partActions.sendReply(user, input);
+  if (!result.ok) return { ok: false, messageKey: result.messageKey, params: result.params };
+  const noteId = (input as { noteId: string }).noteId;
+  revalidateEvent(noteId);
+  revalidatePath(`/family/me/${noteId}`);
+  return {
+    ok: true,
+    outcome: result.outcome,
+    messageKey: result.outcome === "already_sent" ? "recipient.reply.alreadySent" : "recipient.reply.sent",
+  };
+}
+
 /** The family-flavoured wrapper over the note screen's retry. Recognition runs in `after()` there. */
 export async function retryRecognition(input: unknown): Promise<FamilyActionResult> {
   const { user } = await getSession();
