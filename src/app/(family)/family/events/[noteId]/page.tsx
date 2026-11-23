@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { LoadingStatus } from "@/app/(family)/loading-status";
 
 import { listHouseholdMemberOptions, getSharedCareEvent } from "@/lib/care/queries";
+import { getEventTimeline } from "@/lib/care/timeline";
 import type { ReceiverOption } from "@/lib/family/event-offers";
 import { requireFamilyContext } from "@/lib/family/session";
 import { isHouseholdRole } from "@/lib/households/membership";
@@ -37,7 +38,10 @@ async function EventContent({ params }: { params: PageProps<"/family/events/[not
   const event = await getSharedCareEvent(supabase, noteId);
   if (!event || event.householdId !== context.householdId) notFound();
 
-  const options = await listHouseholdMemberOptions(supabase, context.householdId);
+  const [options, timeline] = await Promise.all([
+    listHouseholdMemberOptions(supabase, context.householdId),
+    getEventTimeline(supabase, noteId).catch(() => []),
+  ]);
   const members: ReceiverOption[] = options
     .filter((m) => isHouseholdRole(m.role))
     .map((m) => ({ id: m.id, name: m.displayName, role: m.role as ReceiverOption["role"] }));
@@ -49,6 +53,8 @@ async function EventContent({ params }: { params: PageProps<"/family/events/[not
       members={members}
       language={context.language}
       nowIso={new Date().toISOString()}
+      timeline={timeline}
+      viewerName={context.displayName}
     />
   );
 }

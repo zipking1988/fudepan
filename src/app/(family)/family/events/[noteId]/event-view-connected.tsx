@@ -27,7 +27,7 @@ import {
 } from "@/app/(family)/family/actions";
 import { createClient } from "@/lib/supabase/client";
 
-import { EventView, type EventViewProps } from "./event-view";
+import { ThreadView, type ThreadViewProps } from "./thread-view";
 import type { EventActions } from "./event-runner";
 
 /** Private bucket that holds Evidence files (same name as the server's EVIDENCE_BUCKET). */
@@ -40,8 +40,8 @@ async function uploadEvidenceFile(objectPath: string, token: string, file: File)
   return !error;
 }
 
-/** The Event_View wired to the real Server Actions and the router. */
-export function ConnectedEventView(props: Omit<EventViewProps, "actions" | "onChanged">) {
+/** The Event_View, shown as the family thread, wired to the real Server Actions and the router. */
+export function ConnectedEventView(props: Omit<ThreadViewProps, "actions" | "onChanged">) {
   const router = useRouter();
   const onChanged = useCallback(() => router.refresh(), [router]);
   const actions: EventActions = useMemo(
@@ -70,5 +70,5 @@ export function ConnectedEventView(props: Omit<EventViewProps, "actions" | "onCh
     }),
     [],
   );
-  return <EventView {...props} actions={actions} onChanged={onChanged} />;
+  return <ThreadView {...props} actions={actions} onChanged={onChanged} />;
 }

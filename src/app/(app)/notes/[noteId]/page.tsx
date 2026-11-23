@@ -105,7 +105,7 @@ async function NoteDetailView({ params }: Pick<PageProps<"/notes/[noteId]">, "pa
         ) : note.status === "extracting" ? (
           <div className="grid gap-4 mt-3">
             <p className="app-lede">
-              Reading usually takes up to two minutes. Reload this page to see whether it has
+              Reading usually takes under a minute. Reload this page to see whether it has
               finished. If it has been longer than that, the reading was probably interrupted, and
               you can start it again.
             </p>

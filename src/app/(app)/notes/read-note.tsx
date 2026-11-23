@@ -4,17 +4,17 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getReadingStatus, triggerExtraction } from "@/app/(app)/care/actions";
 import { retryRecognition } from "./actions";
+import { pollReading } from "./poll-reading";
 
 export type ReadState =
   | { phase: "idle" }
   | { phase: "reading"; startedAt: number }
   | { phase: "failed"; message: string };
 
-const POLL_EVERY_MS = 3000;
-/** About three minutes: longer than a normal read, then the person is told plainly. */
-const MAX_POLLS = 60;
 const TOO_LONG =
-  "Reading is taking longer than usual. The photo is saved. Open the note in a minute to see the result.";
+  "Reading is taking longer than usual. The photo is saved. Reload this page, or open the note in a minute to see the result.";
+/** If client navigation does not happen (for example a stale tab), load the page directly. */
+const NAVIGATION_FALLBACK_MS = 5_000;
 const LOST =
   "The connection was lost while reading. The photo is saved. Try again.";
 
@@ -46,19 +46,24 @@ export function useReadNote() {
       running.current = true;
       set({ phase: "reading", startedAt: Date.now() });
       try {
-        for (let i = 0; i < MAX_POLLS && alive.current; i++) {
-          const status = await getReadingStatus(noteId);
-          if (status.state === "ready") {
-            router.push(`/care/${status.careChainId}`);
-            return; // keep showing "reading" until the next page replaces this one
-          }
-          if (status.state === "failed") {
-            set({ phase: "failed", message: status.message });
-            return;
-          }
-          await new Promise((resolve) => setTimeout(resolve, POLL_EVERY_MS));
+        const outcome = await pollReading({
+          check: () => getReadingStatus(noteId),
+          isAlive: () => alive.current,
+        });
+        if (outcome.kind === "ready") {
+          const href = `/care/${outcome.careChainId}`;
+          router.push(href);
+          // Keep showing "reading" until the next page replaces this one.
+          setTimeout(() => {
+            // A hard load on purpose: the client router may be stuck (e.g. a tab left open
+            // across a server rebuild), and the draft is already saved on the server.
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+            if (alive.current) window.location.assign(href);
+          }, NAVIGATION_FALLBACK_MS);
+          return;
         }
-        if (alive.current) set({ phase: "failed", message: TOO_LONG });
+        if (outcome.kind === "failed") set({ phase: "failed", message: outcome.message });
+        if (outcome.kind === "too_long") set({ phase: "failed", message: TOO_LONG });
       } catch {
         set({ phase: "failed", message: LOST });
       } finally {
@@ -140,7 +145,7 @@ export function ReadingInProgress({ startedAt }: { startedAt: number }) {
         Reading the handwriting…
       </p>
       <p className="app-hint" aria-hidden="true">
-        {formatElapsed(seconds)} so far. This can take up to two minutes. Please keep this page open.
+        {formatElapsed(seconds)} so far. This usually takes under a minute. You can close this page; your family will still see the note.
       </p>
       <ul className="app-hint grid gap-1 pl-5 list-disc">
         <li>Fudepan lists the care steps it finds in the note.</li>
