@@ -510,6 +510,86 @@ export type Database = {
           },
         ]
       }
+      household_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by_user_id: string | null
+          accepted_member_id: string | null
+          created_at: string
+          created_by_member_id: string
+          expired_at: string | null
+          expires_at: string
+          household_id: string
+          id: string
+          revoked_at: string | null
+          revoked_by_member_id: string | null
+          role: string
+          state: string
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          accepted_member_id?: string | null
+          created_at?: string
+          created_by_member_id: string
+          expired_at?: string | null
+          expires_at: string
+          household_id: string
+          id?: string
+          revoked_at?: string | null
+          revoked_by_member_id?: string | null
+          role: string
+          state?: string
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by_user_id?: string | null
+          accepted_member_id?: string | null
+          created_at?: string
+          created_by_member_id?: string
+          expired_at?: string | null
+          expires_at?: string
+          household_id?: string
+          id?: string
+          revoked_at?: string | null
+          revoked_by_member_id?: string | null
+          role?: string
+          state?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "household_invites_accepted_member_same_household"
+            columns: ["accepted_member_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "household_members"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "household_invites_creator_same_household"
+            columns: ["created_by_member_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "household_members"
+            referencedColumns: ["id", "household_id"]
+          },
+          {
+            foreignKeyName: "household_invites_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "household_invites_revoker_same_household"
+            columns: ["revoked_by_member_id", "household_id"]
+            isOneToOne: false
+            referencedRelation: "household_members"
+            referencedColumns: ["id", "household_id"]
+          },
+        ]
+      }
       household_members: {
         Row: {
           created_at: string
@@ -573,6 +653,44 @@ export type Database = {
             columns: ["household_id"]
             isOneToOne: true
             referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_portraits: {
+        Row: {
+          content_type: string
+          household_id: string
+          member_id: string
+          object_path: string
+          size_bytes: number
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          content_type: string
+          household_id: string
+          member_id: string
+          object_path: string
+          size_bytes: number
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          content_type?: string
+          household_id?: string
+          member_id?: string
+          object_path?: string
+          size_bytes?: number
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_portraits_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: true
+            referencedRelation: "household_members"
             referencedColumns: ["id"]
           },
         ]
@@ -1048,6 +1166,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invite: {
+        Args: {
+          p_display_name: string
+          p_token_hash: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      change_member_role: {
+        Args: {
+          p_household_id: string
+          p_member_id: string
+          p_role: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       claim_note_upload_failure: {
         Args: { p_note_id: string; p_user_id: string }
         Returns: boolean
@@ -1079,6 +1214,27 @@ export type Database = {
         }
         Returns: Json
       }
+      create_household: {
+        Args: {
+          p_display_name: string
+          p_household_name: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      create_invite: {
+        Args: {
+          p_household_id: string
+          p_role: string
+          p_token_hash: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      deactivate_member: {
+        Args: { p_household_id: string; p_member_id: string; p_user_id: string }
+        Returns: Json
+      }
       decide_approval: {
         Args: { p_decision: string; p_step_id: string; p_user_id: string }
         Returns: Json
@@ -1099,10 +1255,19 @@ export type Database = {
         Args: { p_reason_code: string; p_retryable?: boolean; p_run_id: string }
         Returns: Json
       }
+      leave_household: {
+        Args: { p_household_id: string; p_user_id: string }
+        Returns: Json
+      }
+      list_invites: {
+        Args: { p_household_id: string; p_user_id: string }
+        Returns: Json
+      }
       mark_feed_seen: {
         Args: { p_household_id: string; p_seen_at?: string; p_user_id: string }
         Returns: undefined
       }
+      preview_invite: { Args: { p_token_hash: string }; Returns: Json }
       record_evidence: {
         Args: {
           p_kind: string
@@ -1194,6 +1359,10 @@ export type Database = {
         Args: { p_household_id?: string; p_limit?: number; p_now?: string }
         Returns: Json[]
       }
+      revoke_invite: {
+        Args: { p_household_id: string; p_invite_id: string; p_user_id: string }
+        Returns: Json
+      }
       save_appointment_clarification: {
         Args: {
           p_appointment_time: string
@@ -1219,6 +1388,14 @@ export type Database = {
       }
       send_recipient_reply: {
         Args: { p_note_id: string; p_reply: string; p_user_id: string }
+        Returns: Json
+      }
+      set_member_display_name: {
+        Args: {
+          p_display_name: string
+          p_household_id: string
+          p_user_id: string
+        }
         Returns: Json
       }
       set_member_language: {

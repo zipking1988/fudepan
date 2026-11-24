@@ -43,8 +43,9 @@ export type CompletionOutcome =
   | { outcome: "evidence_required"; missing: string[] };
 
 /**
- * Requirements 6.6, 9.3, 11.1, 11.3, 11.6, 11.7. Decided from the owner, the
- * Approval_State, and the Evidence only. The current Progress_Status
+ * Requirements 6.6, 9.3, 11.1, 11.6, 11.7. Decided from the owner and the Approval_State.
+ * Proof is optional context in the household flow: missing required Evidence never blocks
+ * completion and never turns it into `evidence_required` (migration 20261217000000). The current Progress_Status
  * (`in_progress`, `evidence_required`, `escalated`) never changes the outcome;
  * only a Closed_Part is refused. The approval state is not changed here.
  */
@@ -63,8 +64,6 @@ export function decideCompletion(
   if ((part.approvalRequired && state !== "approved") || (isHighRiskPart(part) && unresolved)) {
     return { ok: false, code: "approval_pending" };
   }
-  const missing = missingEvidence(part);
-  if (missing.length > 0) return { ok: true, value: { outcome: "evidence_required", missing } };
   return { ok: true, value: { outcome: "completed" } };
 }
 

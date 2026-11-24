@@ -251,3 +251,42 @@ describe("Japanese dictionary", () => {
     expect(() => formatDateTimeInZone(at, "Not/AZone", "ja")).toThrow(RangeError);
   });
 });
+
+describe("membership dictionaries (family-app-demo-parity 2.1)", () => {
+  const ROLES = [
+    "care_recipient",
+    "primary_caregiver",
+    "family_member",
+    "medical_coordinator",
+    "finance_coordinator",
+    "transport_coordinator",
+    "emergency_contact",
+    "professional_caregiver",
+  ];
+  const required = [
+    "nav.members",
+    "member.leftSuffix",
+    "welcome.left.body",
+    "membership.error.generic",
+    "firstRun.recipient.body",
+    "reminder.kind.member_joined",
+    "reminder.kind.member_role_changed",
+    "reminder.kind.part_needs_someone",
+    ...ROLES.flatMap((r) => [`role.${r}.label`, `role.${r}.description`]),
+    ...["pending", "accepted", "revoked", "expired"].map((s) => `inviteState.${s}`),
+    ...["household.created", "member.joined", "member.rejoined", "member.role_changed", "member.deactivated", "member.left", "member.display_name_changed", "invite.created", "invite.revoked", "invite.accepted", "invite.expired"].map((e) => `audit.membership.${e}`),
+  ];
+  it("has every required key, non-empty, in English and Japanese", () => {
+    for (const key of required) {
+      expect(en[key as MessageKey], key).toBeTruthy();
+      expect(ja[key as MessageKey], key).toBeTruthy();
+    }
+    for (const group of ["signup.", "welcome.", "join.", "invites.", "members.", "firstRun.", "membership.refusal."]) {
+      expect(MESSAGE_KEYS.some((k) => k.startsWith(group)), group).toBe(true);
+    }
+  });
+  it("keeps the 'left the household' text", () => {
+    expect(en["member.leftSuffix"]).toBe("(left the household)");
+    expect(ja["member.leftSuffix"]).toBe("（世帯を離れました）");
+  });
+});

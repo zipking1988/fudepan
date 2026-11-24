@@ -159,6 +159,8 @@ export function deriveMissingDetails(
     }
     // A time detail is answered only by a human-confirmed time, never by a typed answer or model time.
     if (stored.kind === "time" && hasConfirmedAppointmentTime(part)) continue;
+    // A stored time question on a non-appointment Part is a deadline. Only a confirmed task_due answers it; a reply-by time does not.
+    if (stored.kind === "time" && part.careCategory !== "appointment" && part.taskDue?.provenance === "human_confirmed") continue;
     // Likewise a location or amount saved on the Part through its own form answers the detail.
     if (stored.kind === "location" && !isBlank(part.location)) continue;
     if (stored.kind === "amount" && part.requiredAmountMinor !== null) continue;

@@ -34,7 +34,7 @@ describe("sign-in form", () => {
   });
 
   it("has a clearly named submit button and carries the destination", () => {
-    expect(html).toContain('<button type="submit" class="app-button">Sign in</button>');
+    expect(html).toMatch(/<button type="submit" class="[^"]*\blp-btn\b[^"]*">Sign in<\/button>/);
     expect(html).toContain('<input type="hidden" name="next" value="/notes"/>');
   });
 

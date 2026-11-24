@@ -33,7 +33,14 @@ describe("helpers", () => {
   });
   it("limits links for the care recipient", () => {
     expect(familyLinks("care_recipient").map((l) => l.href)).toEqual(["/family/capture", "/family"]);
-    expect(familyLinks("primary_caregiver")).toHaveLength(3);
+    expect(familyLinks("primary_caregiver").map((l) => l.href)).toEqual([
+      "/family",
+      "/family/capture",
+      "/family/members",
+      "/family/settings/language",
+    ]);
+    expect(familyLinks("family_member").map((l) => l.labelKey)).toContain("nav.members");
+    expect(familyLinks("care_recipient").map((l) => l.labelKey)).not.toContain("nav.members");
   });
   it("marks the feed link current on event pages only for the feed", () => {
     expect(isCurrentLink("/family", "/family/events/x")).toBe(true);

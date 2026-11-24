@@ -9,10 +9,16 @@
  * Old `/care` outcome messages ("Step marked as completed.") are not here: those pages stay English
  * and keep their own wording in `care/rules/messages-en.ts`.
  */
+import { dashboardEn } from "./dashboard-en";
 import { eventEn } from "./event-en";
+import { membershipEn } from "./membership-en";
+import { playfulEn } from "./playful-en";
 
 export const en = {
   ...eventEn,
+  ...membershipEn,
+  ...dashboardEn,
+  ...playfulEn,
   // Refusals (src/lib/care/rules/refusals.ts and part-actions.ts)
   "refusal.signedOut": "You must be signed in.",
   "refusal.notFoundOrNoAccess": "We could not find this task, or you do not have access to it.",

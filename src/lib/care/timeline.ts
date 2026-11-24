@@ -148,7 +148,11 @@ export type TimelineEntry = {
   params: Record<string, TimelineParamValue>;
   at: string;
   actorName: string | null;
+  /** Household member id of a human actor, so a page can say "saved by you" without names. */
+  actorMemberId?: string | null;
   actorType: string;
+  /** The Part the event is about, when it names one. */
+  stepId?: string | null;
   stepTitle: string | null;
 };
 
@@ -203,7 +207,11 @@ const AUDIT_COLUMNS =
  * note's chains, and by legacy payload `note_id` (rows written before the
  * column existed), de-duplicated by id. Uses the caller's RLS client.
  */
-export async function getEventTimeline(supabase: Client, noteId: string): Promise<TimelineEntry[]> {
+export async function getEventTimeline(
+  supabase: Client,
+  noteId: string,
+  options: { leftSuffix?: string } = {},
+): Promise<TimelineEntry[]> {
   const { data: chains, error: chainError } = await supabase
     .from("care_chains")
     .select("id")
@@ -240,13 +248,19 @@ export async function getEventTimeline(supabase: Client, noteId: string): Promis
     ...new Set(sorted.flatMap((e) => (e.actor_type === "human" && e.actor_id ? [e.actor_id] : []))),
   ];
   const names = new Map<string, string>();
+  const memberIds = new Map<string, string>();
   if (actorIds.length > 0) {
     const { data: members } = await supabase
       .from("household_members")
-      .select("household_id, user_id, display_name")
+      .select("id, household_id, user_id, display_name, is_active")
       .in("household_id", householdIds)
       .in("user_id", actorIds);
-    for (const m of members ?? []) names.set(`${m.household_id}:${m.user_id}`, m.display_name);
+    for (const m of members ?? []) {
+      // Former members keep their name, with a suffix so nobody thinks they are still in the household.
+      const suffix = !m.is_active && options.leftSuffix ? ` ${options.leftSuffix}` : "";
+      names.set(`${m.household_id}:${m.user_id}`, `${m.display_name}${suffix}`);
+      if (m.id) memberIds.set(`${m.household_id}:${m.user_id}`, m.id);
+    }
   }
   const stepIds = [...new Set(sorted.flatMap((e) => (e.care_step_id ? [e.care_step_id] : [])))];
   const titles = new Map<string, string>();
@@ -265,7 +279,12 @@ export async function getEventTimeline(supabase: Client, noteId: string): Promis
       e.actor_type === "human" && e.actor_id
         ? (names.get(`${e.household_id}:${e.actor_id}`) ?? null)
         : null,
+    actorMemberId:
+      e.actor_type === "human" && e.actor_id
+        ? (memberIds.get(`${e.household_id}:${e.actor_id}`) ?? null)
+        : null,
     actorType: e.actor_type,
+    stepId: e.care_step_id ?? null,
     stepTitle: e.care_step_id ? (titles.get(e.care_step_id) ?? null) : null,
   }));
 }

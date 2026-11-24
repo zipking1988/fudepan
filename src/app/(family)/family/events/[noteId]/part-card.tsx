@@ -22,6 +22,8 @@ import {
   AmountForm,
   AppointmentForm,
   DeadlineForm,
+  isDeadlineQuestion,
+  isStoredTaskDueQuestion,
   EvidenceForm,
   PersonForm,
   ResubmitForm,
@@ -113,7 +115,7 @@ function MissingBlock({
     (d) => d.storedDetailId === null && appointmentCodes.has(d.questionCode),
   );
   const derivedAmount = details.some((d) => d.storedDetailId === null && d.questionCode === "which_amount");
-  const derivedDeadline = details.some((d) => d.storedDetailId === null && d.questionCode === "when_is_deadline");
+  const derivedDeadline = details.some((d) => isDeadlineQuestion(part, d));
 
   const question = (d: MissingDetailView): string =>
     d.questionCode === "ai_question" && d.aiQuestion
@@ -133,7 +135,7 @@ function MissingBlock({
             </p>
             {d.personToAsk && <p className="app-hint">{tr.t("event.askPerson", { name: d.personToAsk })}</p>}
             {d.questionCode === "who_will_drive" && <p className="app-hint">{tr.t("event.missing.driverHint")}</p>}
-            {canAnswer && d.storedDetailId !== null && (
+            {canAnswer && d.storedDetailId !== null && !isStoredTaskDueQuestion(part, d) && (
               <AnswerForm detail={d} tr={tr} runner={runner} actions={actions} />
             )}
           </li>
@@ -143,6 +145,9 @@ function MissingBlock({
         <AppointmentForm part={part} tr={tr} runner={runner} actions={actions} />
       )}
       {canAnswer && derivedAmount && <AmountForm part={part} tr={tr} runner={runner} actions={actions} />}
+      {canAnswer && details.some((d) => isStoredTaskDueQuestion(part, d)) && (
+        <DeadlineForm part={part} tr={tr} runner={runner} actions={actions} fixedTaskDue />
+      )}
       {canAnswer && derivedDeadline && <DeadlineForm part={part} tr={tr} runner={runner} actions={actions} />}
     </Section>
   );
@@ -308,7 +313,7 @@ export function PartCard({ part, viewer, members, language, nowIso, actions, onC
           </ul>
         )}
         {offers.addEvidence && (
-          <details>
+          <details id={`proof-${part.id}`}>
             <summary className="app-link min-h-12 cursor-pointer py-2">{tr.t("event.evidence.heading")}</summary>
             <EvidenceForm part={part} tr={tr} runner={runner} actions={actions} />
           </details>

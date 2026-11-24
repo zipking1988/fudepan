@@ -9,6 +9,7 @@
  * times, zones, and the chain title of a ready event. Feed item `params` are never read.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 import { getSharedCareEvent } from "@/lib/care/queries";
 import { effectiveApprovalState } from "@/lib/care/rules/approval";
 import { eventNeedsSomeone, partNeedsSomeone } from "@/lib/care/rules/missing-details";
@@ -85,7 +86,44 @@ export type FeedReminder = {
   seen: boolean;
 };
 
+/** Household feed kinds that announce a membership change (no note attached). */
+export const MEMBER_NOTICE_KINDS = ["member_joined", "member_role_changed", "part_released"] as const;
+export type MemberNoticeKind = (typeof MEMBER_NOTICE_KINDS)[number];
+
+/** A membership notice. Only a message key, a Role code, and the time leave this module. */
+export type FeedNotice = {
+  id: string;
+  kind: MemberNoticeKind;
+  /** Dictionary key for the notice text. */
+  messageKey: "reminder.kind.member_joined" | "reminder.kind.member_role_changed" | "reminder.kind.part_needs_someone";
+  createdAt: string;
+};
+
+export type FeedNoticeRow = { id: string; kind: string; createdAt: string; params: unknown };
+
+const roleParams = z.object({ member_id: z.string().uuid(), role: z.string().min(1) }).passthrough();
+const releasedParams = z.object({ needs_someone: z.literal(true) }).passthrough();
+
+/** Parses notice rows. A row with an unknown kind or an unexpected params shape is dropped. */
+export function parseNotices(rows: readonly FeedNoticeRow[]): FeedNotice[] {
+  const out: FeedNotice[] = [];
+  for (const row of rows) {
+    if (row.kind === "member_joined" || row.kind === "member_role_changed") {
+      if (!roleParams.safeParse(row.params).success) continue;
+      out.push({ id: row.id, kind: row.kind, messageKey: `reminder.kind.${row.kind}`, createdAt: row.createdAt });
+    } else if (row.kind === "part_released") {
+      if (!releasedParams.safeParse(row.params).success) continue;
+      out.push({ id: row.id, kind: row.kind, messageKey: "reminder.kind.part_needs_someone", createdAt: row.createdAt });
+    }
+  }
+  return out.sort(
+    (a, b) => time(b.createdAt) - time(a.createdAt) || (a.id < b.id ? 1 : a.id > b.id ? -1 : 0),
+  );
+}
+
 export type FamilyFeed = {
+  /** Membership notices, newest first. */
+  notices: FeedNotice[];
   /** "Needs someone" events first, then the rest; each group newest activity first. */
   events: FeedEvent[];
   needsSomeone: FeedEvent[];
@@ -195,6 +233,7 @@ export function buildFeed(
   now: Date,
   lastSeenAt: string | null,
   memberId: string,
+  notices: readonly FeedNotice[] = [],
 ): FamilyFeed {
   const seenAfter = lastSeenAt === null ? Number.NEGATIVE_INFINITY : time(lastSeenAt);
   const newest = new Map<string, FeedItemRow>();
@@ -258,6 +297,7 @@ export function buildFeed(
   );
 
   return {
+    notices: [...notices],
     events: [...needsSomeone, ...other],
     needsSomeone,
     other,
@@ -280,10 +320,24 @@ export async function getFamilyFeed(
   memberId: string,
   now: Date = new Date(),
 ): Promise<FamilyFeed> {
+  return (await loadFamilyFeed(supabase, householdId, memberId, now)).feed;
+}
+
+/**
+ * The Family_Feed together with the Shared_Care_Events it was built from, keyed by note id, so a
+ * page can show the events without reading them a second time. Same queries and household
+ * filter as `getFamilyFeed`.
+ */
+export async function loadFamilyFeed(
+  supabase: Client,
+  householdId: string,
+  memberId: string,
+  now: Date = new Date(),
+): Promise<{ feed: FamilyFeed; events: ReadonlyMap<string, SharedCareEvent> }> {
   if (!isUuid(householdId) || !isUuid(memberId)) {
-    return buildFeed([], new Map(), now, null, memberId);
+    return { feed: buildFeed([], new Map(), now, null, memberId), events: new Map() };
   }
-  const [itemsRes, stateRes] = await Promise.all([
+  const [itemsRes, stateRes, noticesRes] = await Promise.all([
     supabase
       .from("feed_items")
       .select("id, note_id, care_chain_id, kind, created_at, recipient_member_id, seen_at")
@@ -298,9 +352,23 @@ export async function getFamilyFeed(
       .eq("household_id", householdId)
       .eq("member_id", memberId)
       .maybeSingle(),
+    supabase
+      .from("feed_items")
+      .select("id, kind, created_at, params")
+      .eq("household_id", householdId)
+      .is("note_id", null)
+      .is("recipient_member_id", null)
+      .in("kind", [...MEMBER_NOTICE_KINDS])
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(FEED_LIMIT),
   ]);
   if (itemsRes.error) throw new Error("family_feed_items_query_failed");
   if (stateRes.error) throw new Error("family_feed_state_query_failed");
+  if (noticesRes.error) throw new Error("family_feed_notices_query_failed");
+  const notices = parseNotices(
+    (noticesRes.data ?? []).map((r) => ({ id: r.id, kind: r.kind, createdAt: r.created_at, params: r.params })),
+  );
 
   const rows: FeedItemRow[] = (itemsRes.data ?? []).map((r) => ({
     id: r.id,
@@ -321,5 +389,5 @@ export async function getFamilyFeed(
     // The household filter keeps another household's event out even if a note id leaked.
     if (e && e.householdId === householdId) events.set(e.noteId, e);
   }
-  return buildFeed(rows, events, now, stateRes.data?.last_seen_at ?? null, memberId);
+  return { feed: buildFeed(rows, events, now, stateRes.data?.last_seen_at ?? null, memberId, notices), events };
 }

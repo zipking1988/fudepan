@@ -6,20 +6,33 @@ import { LocalDateTime } from "@/components/app/local-date-time";
 import type { TimelineEntry } from "@/lib/care/timeline";
 import { approvalLabelKey, labelMessageKey, riskLabelKey } from "@/lib/care/rules/labels";
 import type { HelperRole } from "@/lib/care/rules/types";
-import { computeOffers } from "@/lib/family/event-offers";
-import type { EventPart, MissingDetailView } from "@/lib/family/shared-care-event";
+import { computeOffers, type EventViewer, type ReceiverOption } from "@/lib/family/event-offers";
+import type { EventPart, MissingDetailView, SharedCareEvent } from "@/lib/family/shared-care-event";
 import { buildThread, type ThreadItem } from "@/lib/family/thread";
-import { createTranslator, isMessageKey, type MessageKey, type Translator } from "@/lib/i18n/messages";
+import { createTranslator, isMessageKey, type Language, type MessageKey, type Translator } from "@/lib/i18n/messages";
 import { useRunner, type EventActions, type Runner } from "./event-runner";
-import type { EventViewProps } from "./event-view";
 import { PartCard } from "./part-card";
-import { AmountForm, AnswerForm, AppointmentForm, DeadlineForm } from "./part-forms";
+import { AmountForm, AnswerForm, AppointmentForm, DeadlineForm, isDeadlineQuestion, isStoredTaskDueQuestion } from "./part-forms";
 
+/** What the /demo event card and thread receive. */
+export type EventViewProps = {
+  event: SharedCareEvent;
+  viewer: EventViewer;
+  members: readonly ReceiverOption[];
+  language: Language;
+  nowIso: string;
+  actions: EventActions;
+  onChanged: () => void;
+};
 export type ThreadViewProps = EventViewProps & {
   timeline: readonly TimelineEntry[];
   viewerName: string | null;
   /** Display name of the household's care recipient, if there is one. */
   recipientName?: string | null;
+  /** Shown inside the event card's "More details": no page heading and no quick-reply bar. */
+  embedded?: boolean;
+  /** Where the note photo comes from. Defaults to the signed-in image route; /demo passes a static picture. */
+  photoSrc?: string;
 };
 
 const READING_REFRESH_MS = 5000;
@@ -138,7 +151,7 @@ function QuestionCard({
       <p className="app-hint">{part.title}</p>
       {why && <p className="app-hint">{why}</p>}
       {detail.personToAsk && <p className="app-hint">{tr.t("event.askPerson", { name: detail.personToAsk })}</p>}
-      {canAnswer && detail.storedDetailId !== null && (
+      {canAnswer && detail.storedDetailId !== null && !isStoredTaskDueQuestion(part, detail) && (
         <AnswerForm detail={detail} tr={tr} runner={runner} actions={actions} />
       )}
       {canAnswer && detail.storedDetailId === null && APPOINTMENT_CODES.has(detail.questionCode) && (
@@ -147,7 +160,10 @@ function QuestionCard({
       {canAnswer && detail.storedDetailId === null && detail.questionCode === "which_amount" && (
         <AmountForm part={part} tr={tr} runner={runner} actions={actions} />
       )}
-      {canAnswer && detail.storedDetailId === null && detail.questionCode === "when_is_deadline" && (
+      {canAnswer && isStoredTaskDueQuestion(part, detail) && (
+        <DeadlineForm part={part} tr={tr} runner={runner} actions={actions} fixedTaskDue />
+      )}
+      {canAnswer && isDeadlineQuestion(part, detail) && (
         <DeadlineForm part={part} tr={tr} runner={runner} actions={actions} />
       )}
       <RunnerMessage runner={runner} />
@@ -328,7 +344,7 @@ function ReadingRefresh({ onChanged }: { onChanged: () => void }) {
 }
 
 export function ThreadView(props: ThreadViewProps) {
-  const { event, timeline, viewerName, viewer, language, actions, onChanged } = props;
+  const { event, timeline, viewerName, viewer, language, actions, onChanged, photoSrc } = props;
   const tr = createTranslator(language);
   const items = buildThread({
     event,
@@ -347,11 +363,11 @@ export function ThreadView(props: ThreadViewProps) {
       case "photo":
         return (
           <Row key={item.id} who={item.actorName ?? tr.t("thread.someone")} at={item.at} tr={tr}>
-            <a href={`/notes/${event.noteId}/image`} className={`${BUBBLE} block p-2`}>
+            <a href={photoSrc ?? `/notes/${event.noteId}/image`} className={`${BUBBLE} block p-2`}>
               {/* The route checks the session and household on every request. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/notes/${event.noteId}/image`}
+                src={photoSrc ?? `/notes/${event.noteId}/image`}
                 alt={tr.t("thread.photo.alt")}
                 className="max-h-80 w-auto max-w-full rounded-lg"
               />
@@ -439,7 +455,7 @@ export function ThreadView(props: ThreadViewProps) {
   return (
     <div className="grid gap-4">
       <header className="grid gap-1">
-        <h1 className="app-title">{event.title ?? tr.t("event.fallbackTitle")}</h1>
+        {!props.embedded && <h1 className="app-title">{event.title ?? tr.t("event.fallbackTitle")}</h1>}
         <p>
           <Link href={`/family/events/${event.noteId}/timeline`} className="app-link text-lg">
             {tr.t("thread.timeline.link")}
@@ -450,7 +466,9 @@ export function ThreadView(props: ThreadViewProps) {
       <ol aria-label={tr.t("thread.listLabel")} className="grid gap-5 rounded-3xl bg-[#eef0f3] p-3 sm:p-5">
         {items.map(render)}
       </ol>
-      {event.state === "ready" && !event.done && <QuickReplies props={props} tr={tr} hasQuestion={hasQuestion} />}
+      {event.state === "ready" && !event.done && !props.embedded && (
+        <QuickReplies props={props} tr={tr} hasQuestion={hasQuestion} />
+      )}
     </div>
   );
 }

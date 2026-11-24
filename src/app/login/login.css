@@ -1,0 +1,703 @@
+/*
+ * Sign-in page in the landing's style. Colors, type, header, buttons, wave, and
+ * footer come from landing.css (the .lp tokens); this file adds the form card,
+ * the picture column, and the help band. 1rem = 18px.
+ *
+ * Layout: phones show the title, then the forms, then the pictures, so signing
+ * in never needs a scroll past decoration. From 860px the pictures sit on the
+ * left and the card on the right.
+ *
+ * Contrast (WCAG 2.2):
+ *   input border #55576d on white 7.0:1 · "(required)" #55576d on paper 6.9:1
+ *   field error #9a2414 on paper 7.4:1 · alert title #9a2414 on #fbe4df 6.6:1,
+ *   alert text #34364f on #fbe4df 9.6:1
+ * Errors always have words and an icon, never color alone.
+ */
+
+.lp-auth {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
+.lp-auth main {
+  flex: 1;
+}
+
+.lp-auth__top {
+  padding-top: 2.25rem;
+}
+
+.lp-auth__grid {
+  display: grid;
+  grid-template-areas: "head" "card" "art";
+  gap: 1.75rem;
+}
+
+.lp-auth__head {
+  grid-area: head;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  max-width: 32rem;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.lp-auth__title {
+  font-size: clamp(2.1rem, 8vw, 2.9rem);
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.lp-auth__lede {
+  font-size: 1.05rem;
+}
+
+.lp-auth__card {
+  grid-area: card;
+  width: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+  padding: 1.5rem 1.25rem;
+  border: 1px solid var(--lp-line);
+  border-radius: 1.5rem;
+  background: var(--lp-paper);
+  box-shadow: var(--lp-shadow);
+}
+
+.lp-auth__form {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.lp-auth__field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.lp-auth__label {
+  color: var(--lp-ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.lp-auth__required {
+  color: var(--lp-muted);
+  font-weight: 400;
+}
+
+.lp-auth__input {
+  width: 100%;
+  min-height: 3.1rem;
+  padding: 0.55rem 0.9rem;
+  border: 2px solid var(--lp-muted);
+  border-radius: 0.85rem;
+  background: #fff;
+  color: var(--lp-ink);
+  font: inherit;
+  font-size: 1.1rem;
+}
+
+.lp-auth__input:hover {
+  border-color: var(--lp-ink);
+}
+
+.lp-auth__input:focus-visible {
+  border-color: var(--lp-navy);
+  outline: none;
+  box-shadow: 0 0 0 4px rgb(38 42 120 / 0.22);
+}
+
+.lp-auth__input[aria-invalid="true"] {
+  border-color: #9a2414;
+  background: #fffafa;
+}
+
+.lp-auth__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: #9a2414;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.lp-auth__error .lp-icon,
+.lp-auth__alertTitle .lp-icon {
+  margin-top: 0.2em;
+}
+
+.lp-auth__alert {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 1.1rem;
+  border: 2px solid #9a2414;
+  border-left-width: 6px;
+  border-radius: 1rem;
+  background: #fbe4df;
+  line-height: 1.6;
+}
+
+.lp-auth__alertTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  color: #9a2414;
+  font-family: var(--lp-display);
+  font-weight: 700;
+}
+
+.lp-auth__submit {
+  width: 100%;
+}
+
+.lp-auth__submit:disabled {
+  background: var(--lp-muted);
+  box-shadow: none;
+  cursor: progress;
+}
+
+/*
+ * The demo box, first in the card: a lavender panel with the terracotta call to
+ * action, as on the landing. Text #34364f on #e7e8f8 9.7:1; the email and
+ * password are #1c1f4a on white 16.4:1.
+ */
+.lp-auth__demo {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.15rem 1.15rem 1.25rem;
+  border: 2px solid #c9c7f0;
+  border-radius: 1.15rem;
+  background: var(--lp-lavender);
+}
+
+.lp-auth__demoTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.lp-auth__demoTitle .lp-icon {
+  color: var(--lp-violet-ink);
+}
+
+.lp-auth__demoAlert {
+  margin-bottom: 0.75rem;
+}
+
+.lp-auth__demoCreds {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  background: #fff;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.lp-auth__demoCreds div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.6rem;
+}
+
+.lp-auth__demoCreds dt {
+  min-width: 7.5rem;
+  color: var(--lp-muted);
+}
+
+.lp-auth__demoCreds dd {
+  margin: 0;
+  color: var(--lp-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* "Or sign in with your own account": a heading between two rules. */
+.lp-auth__or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 1.5rem 1.25rem;
+  color: var(--lp-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.lp-auth__or::before,
+.lp-auth__or::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--lp-line-strong);
+}
+
+/* Help, in the lavender band under the wave (like the landing's example section). */
+.lp-auth__help {
+  padding-block: 0.5rem 3.5rem;
+  background: var(--lp-lavender);
+}
+
+.lp-auth__helpTitle {
+  font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2.1rem);
+  font-weight: 900;
+  text-align: center;
+}
+
+.lp-auth__topics {
+  display: grid;
+  gap: 1rem;
+  max-width: 52rem;
+  margin: 1.5rem auto 0;
+}
+
+.lp-auth__topic {
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--lp-line);
+  border-radius: 1.25rem;
+  background: var(--lp-paper);
+}
+
+.lp-auth__topicTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.lp-auth__steps {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0;
+  padding-left: 1.2rem;
+  list-style: disc;
+  line-height: 1.6;
+}
+
+.lp-auth__steps li::marker {
+  color: var(--lp-violet);
+}
+
+@media (min-width: 640px) {
+  .lp-auth__card {
+    padding: 2rem 2.25rem;
+  }
+
+  .lp-auth__topics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 860px) {
+  .lp-auth__top {
+    padding-top: 3rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .lp-auth__input,
+  .lp-auth__alert {
+    border-color: CanvasText;
+  }
+}
+
+/* Password with a "Show" button inside the box. The button is 44px tall and says what it does. */
+.lp-auth__password {
+  position: relative;
+}
+
+.lp-auth__password .lp-auth__input {
+  padding-right: 5.25rem;
+}
+
+.lp-auth__reveal {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  min-width: 4.4rem;
+  min-height: 2.45rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: var(--lp-lavender);
+  color: var(--lp-violet-ink);
+  font-family: var(--lp-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.lp-auth__reveal:hover {
+  background: #d6d7f3;
+}
+
+/* Spinner inside a pending button: a ring with one bright quarter, beside the "…ing" words. */
+.lp-auth__spinner {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+  border: 3px solid rgb(255 255 255 / 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+}
+
+/* Pictures: Grandma, her note, and three family faces, as on the landing hero. */
+.lp-auth__art {
+  grid-area: art;
+  display: grid;
+  gap: 3.25rem;
+  width: 100%;
+  max-width: 32rem;
+  margin-inline: auto;
+}
+
+.lp-auth__scene {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.lp-auth__photo {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  box-shadow: var(--lp-shadow);
+}
+
+.lp-auth__photo img,
+.lp-auth__note img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lp-auth__ticks {
+  position: absolute;
+  top: 1rem;
+  right: 1.2rem;
+  width: 2.4rem;
+  height: 2rem;
+  color: var(--lp-ink);
+}
+
+.lp-auth__note {
+  position: absolute;
+  bottom: -2.25rem;
+  left: -0.4rem;
+  width: 50%;
+  overflow: hidden;
+  border-radius: 0.35rem;
+  box-shadow: 0 14px 28px -14px rgb(60 40 20 / 0.5);
+  transform: rotate(-5deg);
+}
+
+.lp-auth__family {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -2.75rem;
+  width: 10.5rem;
+  height: 9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-auth__person {
+  position: absolute;
+  width: 4.3rem;
+}
+
+.lp-auth__person img {
+  display: block;
+  width: 4.3rem;
+  height: 4.3rem;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 10px 20px -10px rgb(28 31 74 / 0.55);
+}
+
+.lp-auth__person span {
+  position: absolute;
+  right: -0.5rem;
+  bottom: -0.4rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--lp-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.6;
+  box-shadow: 0 4px 10px -4px rgb(28 31 74 / 0.4);
+}
+
+.lp-auth__person--misa {
+  top: 0;
+  right: 0.25rem;
+}
+
+.lp-auth__person--kenta {
+  bottom: 0.2rem;
+  left: 0;
+}
+
+.lp-auth__person--yui {
+  right: 0;
+  bottom: -0.6rem;
+}
+
+/* "In the demo, you can": three lines, each with a round icon. */
+.lp-auth__try {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lp-auth__tryTitle {
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.lp-auth__tryList {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-auth__tryList li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--lp-ink);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.lp-auth__tryIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  background: var(--lp-lavender);
+  color: var(--lp-violet-ink);
+}
+
+.lp-auth__tryIcon .lp-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (min-width: 860px) {
+  .lp-auth__grid {
+    grid-template-areas: "art head" "art card";
+    grid-template-columns: 1fr minmax(0, 30rem);
+    grid-template-rows: auto 1fr;
+    column-gap: 3.5rem;
+    row-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .lp-auth__head {
+    justify-items: start;
+    max-width: none;
+    margin-inline: 0;
+    text-align: left;
+  }
+
+  .lp-auth__card {
+    max-width: none;
+  }
+
+  .lp-auth__art {
+    position: sticky;
+    top: 1.5rem;
+    max-width: 30rem;
+    padding-top: 0.5rem;
+  }
+}
+
+/*
+ * Motion, only when the visitor has not asked for less. Each piece arrives once,
+ * a little after the one before (the --d delay set in the page); nothing loops
+ * except the spinner, which only runs while a sign-in is in progress.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .lp-auth__rise {
+    animation: lp-auth-rise 560ms cubic-bezier(0.2, 0.8, 0.25, 1) var(--d, 0ms) both;
+  }
+
+  /* The brush underline under "Sign in" is drawn from left to right. */
+  .lp-auth__mark {
+    animation: lp-auth-brush 650ms cubic-bezier(0.6, 0, 0.3, 1) 380ms both;
+  }
+
+  /* The note drops onto the photo and settles at its tilt. */
+  .lp-auth__note {
+    animation: lp-auth-note 700ms cubic-bezier(0.2, 0.9, 0.3, 1.15) 480ms both;
+  }
+
+  .lp-auth__ticks {
+    transform-origin: 20% 90%;
+    animation: lp-auth-wiggle 600ms ease-in-out 1100ms both;
+  }
+
+  /* Faces pop in one after another; hovering one lifts it. */
+  .lp-auth__person {
+    animation: lp-auth-pop 480ms cubic-bezier(0.2, 0.9, 0.3, 1.35) var(--d, 0ms) both;
+  }
+
+  .lp-auth__person img {
+    transition: transform 0.2s ease;
+  }
+
+  .lp-auth__person:hover img {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+
+  /* One light sweep across the demo button, once, after the card has arrived. */
+  .lp-auth__demoBtn {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lp-auth__demoBtn::after {
+    content: "";
+    position: absolute;
+    top: -20%;
+    bottom: -20%;
+    left: 0;
+    width: 35%;
+    background: linear-gradient(
+      100deg,
+      rgb(255 255 255 / 0) 0%,
+      rgb(255 255 255 / 0.4) 50%,
+      rgb(255 255 255 / 0) 100%
+    );
+    transform: translateX(-110%) skewX(-14deg);
+    animation: lp-auth-shine 900ms ease-in-out 1300ms 1 both;
+    pointer-events: none;
+  }
+
+  .lp-auth .lp-btn {
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease,
+      background-color 0.2s ease;
+  }
+
+  .lp-auth .lp-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .lp-auth .lp-btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  .lp-auth__input {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  /* Problems arrive with a short slide, so the change is noticed. */
+  .lp-auth__alert,
+  .lp-auth__error {
+    animation: lp-auth-rise 320ms ease-out both;
+  }
+
+  .lp-auth__spinner {
+    animation: lp-auth-spin 0.8s linear infinite;
+  }
+}
+
+/* With reduced motion the spinner stays still; the "Signing in…" words carry the state. */
+
+@keyframes lp-auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes lp-auth-brush {
+  from {
+    background-size: 0% 0.36em;
+  }
+
+  to {
+    background-size: 100% 0.36em;
+  }
+}
+
+@keyframes lp-auth-note {
+  from {
+    opacity: 0;
+    transform: translateY(-26px) rotate(-14deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes lp-auth-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes lp-auth-wiggle {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  30% {
+    transform: rotate(-12deg);
+  }
+
+  65% {
+    transform: rotate(8deg);
+  }
+}
+
+/* The strip is 35% of the button wide, so 400% carries it past the right edge. */
+@keyframes lp-auth-shine {
+  0% {
+    opacity: 1;
+    transform: translateX(-110%) skewX(-14deg);
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(400%) skewX(-14deg);
+  }
+}
+
+@keyframes lp-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

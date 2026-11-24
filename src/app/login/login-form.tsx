@@ -1,29 +1,27 @@
 "use client";
-
-import { useActionState } from "react";
-
+import { useActionState, useState } from "react";
+import { RiskMedium } from "@/components/landing/icons";
 import { signIn, type SignInState } from "./actions";
-
 const INITIAL: SignInState = { email: "", fieldErrors: {}, formError: null };
-
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(signIn, INITIAL);
   const { fieldErrors } = state;
-
+  const [showPassword, setShowPassword] = useState(false);
   return (
-    <form action={action} noValidate className="mt-10 grid gap-7" aria-describedby="sign-in-help">
+    <form action={action} noValidate className="lp-auth__form" aria-describedby="sign-in-help">
       <input type="hidden" name="next" value={next} />
-
       {state.formError && (
-        <div role="alert" className="app-alert">
-          <p className="app-alert__title">Sign-in didn&apos;t work</p>
+        <div role="alert" className="lp-auth__alert">
+          <p className="lp-auth__alertTitle">
+            <RiskMedium />
+            Sign-in didn&apos;t work
+          </p>
           <p>{state.formError}</p>
         </div>
       )}
-
-      <div className="grid gap-2">
-        <label htmlFor="email" className="app-label">
-          Email address <span className="app-required">(required)</span>
+      <div className="lp-auth__field">
+        <label htmlFor="email" className="lp-auth__label">
+          Email address <span className="lp-auth__required">(required)</span>
         </label>
         <input
           id="email"
@@ -37,42 +35,59 @@ export function LoginForm({ next }: { next: string }) {
           aria-describedby={fieldErrors.email ? "email-error" : undefined}
           defaultValue={state.email}
           key={`email-${state.email}`}
-          className="app-input"
+          className="lp-auth__input"
         />
         {fieldErrors.email && (
-          <p id="email-error" className="app-field-error">
+          <p id="email-error" className="lp-auth__error">
+            <RiskMedium />
             {fieldErrors.email}
           </p>
         )}
       </div>
-
-      <div className="grid gap-2">
-        <label htmlFor="password" className="app-label">
-          Password <span className="app-required">(required)</span>
+      <div className="lp-auth__field">
+        <label htmlFor="password" className="lp-auth__label">
+          Password <span className="lp-auth__required">(required)</span>
         </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-          aria-required="true"
-          aria-invalid={fieldErrors.password ? true : undefined}
-          aria-describedby={fieldErrors.password ? "password-error" : undefined}
-          className="app-input"
-        />
+        <div className="lp-auth__password">
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            required
+            aria-required="true"
+            aria-invalid={fieldErrors.password ? true : undefined}
+            aria-describedby={fieldErrors.password ? "password-error" : undefined}
+            className="lp-auth__input"
+          />
+          <button
+            type="button"
+            className="lp-auth__reveal"
+            aria-controls="password"
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((shown) => !shown)}
+          >
+            {showPassword ? "Hide" : "Show"}
+            <span className="lp-sr"> password</span>
+          </button>
+        </div>
         {fieldErrors.password && (
-          <p id="password-error" className="app-field-error">
+          <p id="password-error" className="lp-auth__error">
+            <RiskMedium />
             {fieldErrors.password}
           </p>
         )}
       </div>
-
       <div>
-        <button type="submit" className="app-button" disabled={pending}>
+        <button
+          type="submit"
+          className="lp-btn lp-btn--navy lp-btn--large lp-auth__submit"
+          disabled={pending}
+        >
+          {pending && <span className="lp-auth__spinner" aria-hidden="true" />}
           {pending ? "Signing in…" : "Sign in"}
         </button>
-        <p role="status" aria-live="polite" className="sr-only">
+        <p role="status" aria-live="polite" className="lp-sr">
           {pending ? "Signing in." : ""}
         </p>
       </div>

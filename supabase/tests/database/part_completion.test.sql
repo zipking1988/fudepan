@@ -6,7 +6,7 @@
 -- professional_caregiver. All new rows are fake and rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(93);
+select plan(90);
 -- ---------------------------------------------------------------------------
 -- Fixtures (as postgres)
 -- ---------------------------------------------------------------------------
@@ -33,9 +33,9 @@ values ('e4000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-0000000
 -- 02 approved, driver Kenta, companion Aiko    (not_owner, recipient, outsider)
 -- 03 pending approval                          (approval_pending)
 -- 04 rejected approval                         (approval_pending)
--- 05 approved, needs Receipt + Photo           (evidence_required result, then completed)
--- 06 approved, status escalated, needs Receipt (completes once evidence exists)
--- 07 approved, status evidence_required        (completes, nothing missing)
+-- 05 approved, needs Receipt + Photo, no proof (completes without proof)
+-- 06 approved, status escalated, needs Receipt (optional proof recorded, then completes)
+-- 07 approved, status evidence_required        (Owner completes)
 -- 08 low risk, approval not required           (completes)
 -- 09 completed                                 (part_closed)
 -- 0a failed                                    (part_closed)
@@ -209,67 +209,56 @@ select is(
   'Refused completions leave status and approval_state unchanged'
 );
 -- ---------------------------------------------------------------------------
--- complete_part: missing Evidence is a committed result (step 05)
+-- complete_part: proof is optional (migration 20261217000000)
+-- Step 05 needs Receipt + Photo but has none: the Owner still completes it.
+-- Step 06 (escalated) gets optional proof first. Each uses its own Part so no
+-- completion is repeated (a second one would be part_closed).
 -- ---------------------------------------------------------------------------
 select is(
   public.complete_part('e5000000-0000-4000-8000-000000000005', 'd1000000-0000-4000-8000-000000000004') - 'audit_event_id',
   jsonb_build_object(
     'care_chain_id', 'e4000000-0000-4000-8000-000000000001',
     'note_id', 'e3000000-0000-4000-8000-000000000001',
-    'outcome', 'evidence_required',
-    'approval_reset', false,
-    'missing', jsonb_build_array('Receipt', 'Photo')
+    'outcome', 'completed',
+    'approval_reset', false
   ),
-  'Missing Evidence returns outcome evidence_required listing the missing labels in order'
+  'An approved Owner completes a Part that lists required proof but has none, with no missing list'
 );
 select is(
   (select status || ' ' || approval_state from public.care_steps where id = 'e5000000-0000-4000-8000-000000000005'),
-  'evidence_required approved', 'The evidence_required outcome is committed and approval_state is unchanged'
+  'completed approved', 'Completion without proof sets status completed and leaves approval_state unchanged'
 );
 select is(
-  (select payload from public.audit_events
-   where care_step_id = 'e5000000-0000-4000-8000-000000000005' and event_type = 'part.evidence_missing'),
-  '{"missing_count": 2}'::jsonb, 'The part.evidence_missing payload holds only the count'
+  (select string_agg(event_type, ',' order by event_type) from public.audit_events
+   where care_step_id = 'e5000000-0000-4000-8000-000000000005'),
+  'part.completed', 'Completion without proof writes only part.completed and no part.evidence_missing event'
 );
 select is(
-  (select count(*)::int from public.feed_items
-   where care_step_id = 'e5000000-0000-4000-8000-000000000005' and kind = 'evidence_missing'),
-  1, 'One Feed_Item for the evidence_required outcome'
+  (select string_agg(kind, ',' order by kind) from public.feed_items
+   where care_step_id = 'e5000000-0000-4000-8000-000000000005'),
+  'completed', 'Completion without proof writes one completed Feed_Item and no evidence_missing item'
 );
 select is(
-  public.record_evidence('e5000000-0000-4000-8000-000000000005', 'd1000000-0000-4000-8000-000000000004',
-    'Receipt', 'text', null, 'Receipt number 1234') ->> 'outcome',
-  'recorded', 'The Owner records text Evidence'
+  (select count(*)::int from public.part_evidence where care_step_id = 'e5000000-0000-4000-8000-000000000005'),
+  0, 'Completion without proof stores no part_evidence'
 );
-select is(
-  public.complete_part('e5000000-0000-4000-8000-000000000005', 'd1000000-0000-4000-8000-000000000004') -> 'missing',
-  '["Photo"]'::jsonb, 'After one label is attached only the other is listed as missing'
-);
-select is(
-  public.record_evidence('e5000000-0000-4000-8000-000000000005', 'd1000000-0000-4000-8000-000000000004',
-    'Photo', 'photo', 'd0000000-0000-4000-8000-000000000001/e5000000-0000-4000-8000-000000000005/1763700000001-evidence.jpg',
-    null) ->> 'outcome',
-  'recorded', 'The Owner records photo Evidence at the household/step path'
-);
-select is(
-  public.complete_part('e5000000-0000-4000-8000-000000000005', 'd1000000-0000-4000-8000-000000000004') ->> 'outcome',
-  'completed', 'A Part in evidence_required completes once all required Evidence exists'
-);
--- ---------------------------------------------------------------------------
--- complete_part from escalated / evidence_required status
--- ---------------------------------------------------------------------------
-select is(
-  public.complete_part('e5000000-0000-4000-8000-000000000006', 'd1000000-0000-4000-8000-000000000004') ->> 'outcome',
-  'evidence_required', 'An escalated approved Part with missing Evidence returns evidence_required'
-);
+-- Optional proof is still recorded, and completion does not touch it.
 select is(
   public.record_evidence('e5000000-0000-4000-8000-000000000006', 'd1000000-0000-4000-8000-000000000004',
     'Receipt', 'text', null, 'Done at the desk') ->> 'outcome',
-  'recorded', 'Evidence is recorded on an evidence_required Part'
+  'recorded', 'The Owner can still record optional text proof on an escalated Part'
 );
 select is(
   public.complete_part('e5000000-0000-4000-8000-000000000006', 'd1000000-0000-4000-8000-000000000004') ->> 'outcome',
-  'completed', 'An approved Part that was escalated then evidence_required completes once Evidence exists'
+  'completed', 'An approved escalated Part completes after optional proof is recorded'
+);
+select is(
+  (select count(*)::int from public.part_evidence where care_step_id = 'e5000000-0000-4000-8000-000000000006')
+  + (select count(*)::int from public.audit_events
+     where care_step_id = 'e5000000-0000-4000-8000-000000000006' and event_type = 'part.evidence_missing')
+  + (select count(*)::int from public.feed_items
+     where care_step_id = 'e5000000-0000-4000-8000-000000000006' and kind = 'evidence_missing'),
+  1, 'Recorded proof is kept after completion and no evidence_missing event or Feed_Item exists'
 );
 select is(
   public.complete_part('e5000000-0000-4000-8000-000000000007', 'd1000000-0000-4000-8000-000000000004') ->> 'outcome',

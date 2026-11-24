@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useReducer, useRef, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from "react";
 import { completeNoteUpload, prepareNoteUpload, reportNoteUploadFailure } from "@/app/(app)/notes/actions";
 import { createTranslator, type Language } from "@/lib/i18n/messages";
 import { NOTE_UPLOAD_MESSAGES } from "@/lib/notes/messages";
@@ -33,6 +33,7 @@ export function CaptureForm({ householdId, language }: { householdId: string; la
   const tr = useMemo(() => createTranslator(language), [language]);
   const [state, dispatch] = useReducer(uploadReducer<File>, undefined, initialUploadState<File>);
   const router = useRouter();
+  const [dragging, setDragging] = useState(false);
   const successRef = useRef<HTMLDivElement>(null);
 
   const previewUrl = useMemo(() => (state.file ? URL.createObjectURL(state.file) : null), [state.file]);
@@ -112,16 +113,36 @@ export function CaptureForm({ householdId, language }: { householdId: string; la
     );
   }
 
-  function handleSelect(event: ChangeEvent<HTMLInputElement>) {
-    dispatch({ type: "select", file: event.currentTarget.files?.[0] ?? null });
+  /**
+   * Camera, photo picker and drag-and-drop all arrive here, so they share one check and one
+   * preview. A photo that cannot be used shows its problem at once instead of after "Send".
+   */
+  async function handlePick(file: File | null) {
+    dispatch({ type: "select", file });
+    if (!file) return;
+    let head: Uint8Array;
+    try {
+      head = new Uint8Array(await file.slice(0, NOTE_SIGNATURE_BYTES).arrayBuffer());
+    } catch {
+      dispatch({ type: "submit" });
+      dispatch({ type: "failed", error: UNREADABLE });
+      return;
+    }
+    const check = checkNoteFile({ type: file.type, size: file.size }, head);
+    if (!check.ok) {
+      dispatch({ type: "submit" });
+      dispatch({ type: "failed", error: { code: check.problem, message: check.message } });
+    }
   }
 
   return (
     <CaptureFormView
       state={state}
       tr={tr}
-      onSelect={handleSelect}
+      onPick={(file) => void handlePick(file)}
       onSubmit={handleSubmit}
+      dragging={dragging}
+      onDragState={setDragging}
       onReset={() => dispatch({ type: "reset" })}
       successRef={successRef}
       previewUrl={previewUrl}

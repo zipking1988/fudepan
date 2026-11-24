@@ -2,10 +2,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import type { EventViewer, ReceiverOption } from "@/lib/family/event-offers";
-import type { EventPart, SharedCareEvent } from "@/lib/family/shared-care-event";
+import type { EventPart } from "@/lib/family/shared-care-event";
 import { createTranslator } from "@/lib/i18n/messages";
 
-import { EventView } from "./event-view";
 import type { EventActions } from "./event-runner";
 import { resultText } from "./event-runner";
 import { PartCard } from "./part-card";
@@ -348,45 +347,6 @@ describe("action results", () => {
     expect(resultText(tr, { ok: false, messageKey: "nonsense.key", params: {} }).text).toBe(
       "Something went wrong. Nothing was changed. Please try again.",
     );
-  });
-});
-
-describe("EventView states", () => {
-  const base: SharedCareEvent = {
-    noteId: "00000000-0000-4000-8000-0000000000d1",
-    householdId: HOUSEHOLD,
-    state: "ready",
-    retryable: false,
-    failureReason: null,
-    chainId: "00000000-0000-4000-8000-0000000000e1",
-    title: "Clinic plan",
-    riskLevel: "high",
-    createdAt: NOW,
-    parts: [part()],
-    done: false,
-  };
-  const view = (event: SharedCareEvent) =>
-    renderToStaticMarkup(
-      <EventView event={event} viewer={viewer("family_member")} members={members} language="en" nowIso={NOW} actions={actions} onChanged={() => {}} />,
-    );
-
-  it("links the original photo through the signed-in route with alt text, and the timeline", () => {
-    const html = view(base);
-    expect(html).toContain(`/notes/${base.noteId}/image`);
-    expect(html).toContain('alt="The original handwritten note, as it was uploaded"');
-    expect(html).toContain(`/family/events/${base.noteId}/timeline`);
-  });
-
-  it("shows Being read while reading, with no parts", () => {
-    const html = view({ ...base, state: "reading", parts: [], chainId: null, title: null });
-    expect(html).toContain("Being read");
-    expect(html).not.toContain("<article");
-  });
-
-  it("shows a failed read with a retry button", () => {
-    const html = view({ ...base, state: "failed", retryable: true, parts: [], chainId: null, title: null });
-    expect(html).toContain("Could not read this note");
-    expect(html).toContain("Try reading it again");
   });
 });
 

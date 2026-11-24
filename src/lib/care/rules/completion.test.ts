@@ -105,12 +105,14 @@ describe("decideCompletion", () => {
     expect(decideCompletion(pending, member())).toEqual({ ok: false, code: "approval_pending" });
   });
 
-  it("returns evidence_required with the exact missing labels as a result", () => {
+  it("completes without the listed proof: proof is optional in the household flow", () => {
     const p = part({ evidenceRequired: ["receipt", "photo", "note"], evidenceAttached: ["photo"] });
-    expect(decideCompletion(p, member())).toEqual({
-      ok: true,
-      value: { outcome: "evidence_required", missing: ["receipt", "note"] },
-    });
+    expect(decideCompletion(p, member())).toEqual({ ok: true, value: { outcome: "completed" } });
+  });
+  it("still refuses a non-owner and an unconfirmed high-risk task when proof is missing", () => {
+    const p = part({ evidenceRequired: ["receipt"], evidenceAttached: [] });
+    expect(decideCompletion({ ...p, ownerId: "someone-else" }, member()).ok).toBe(false);
+    expect(decideCompletion(part({ evidenceRequired: ["receipt"], storedApprovalState: null, legacyStatus: "pending_review" }), member())).toEqual({ ok: false, code: "approval_pending" });
   });
 
   it("completes when all required Evidence is attached", () => {

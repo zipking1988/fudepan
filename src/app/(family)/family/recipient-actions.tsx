@@ -19,7 +19,16 @@ function useCanSpeak(): boolean {
  * Reads the shown sentences aloud with the device's own speech (Requirement 13.12).
  * Nothing is sent anywhere: the browser speaks the text it already shows.
  */
-export function ReadAloudButton({ text, language }: { text: string; language: Language }) {
+export function ReadAloudButton({
+  text,
+  language,
+  variant = "pill",
+}: {
+  text: string;
+  language: Language;
+  /** "tile": the big square "読む" button under Grandma's card. */
+  variant?: "pill" | "tile";
+}) {
   const tr = createTranslator(language);
   const canSpeak = useCanSpeak();
   const [speaking, setSpeaking] = useState(false);
@@ -42,6 +51,16 @@ export function ReadAloudButton({ text, language }: { text: string; language: La
     synth.speak(utterance);
   }
 
+  if (variant === "tile") {
+    return (
+      <button type="button" className="grandma-card__tile" onClick={toggle} aria-pressed={speaking}>
+        <span aria-hidden="true" className="text-4xl">
+          {speaking ? "⏹️" : "🔈"}
+        </span>
+        <span>{speaking ? tr.t("assistant.stopReading") : tr.t("grandma.read")}</span>
+      </button>
+    );
+  }
   return (
     <button type="button" className="family-assistant__speak" onClick={toggle} aria-pressed={speaking}>
       <span aria-hidden="true">🔊</span> {speaking ? tr.t("assistant.stopReading") : tr.t("assistant.readAloud")}
@@ -50,13 +69,26 @@ export function ReadAloudButton({ text, language }: { text: string; language: La
 }
 
 /** The two fixed replies. No free text (Requirement 13.8). */
-export function ReplyButtons({ noteId, language }: { noteId: string; language: Language }) {
+export function ReplyButtons({
+  noteId,
+  language,
+  demo = false,
+}: {
+  noteId: string;
+  language: Language;
+  /** On /demo: show what would happen, send nothing. */
+  demo?: boolean;
+}) {
   const tr = createTranslator(language);
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ kind: "status" | "alert"; text: string } | null>(null);
 
   function send(reply: "thanks" | "question") {
     setMessage(null);
+    if (demo) {
+      setMessage({ kind: "status", text: tr.t(reply === "thanks" ? "demo.reply.thanks" : "demo.reply.question") });
+      return;
+    }
     startTransition(async () => {
       try {
         const result = await sendRecipientReply({ noteId, reply });

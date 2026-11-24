@@ -66,7 +66,7 @@ describe("safeNextPath", () => {
       undefined,
       42,
     ]) {
-      expect(safeNextPath(bad)).toBe("/notes");
+      expect(safeNextPath(bad)).toBe("/family");
     }
   });
 });

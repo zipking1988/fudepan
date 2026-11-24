@@ -6,11 +6,11 @@ import { isCurrentLink } from "@/lib/family/session-core";
 
 export type NavItem = { href: string; label: string };
 
-/** Navigation links with aria-current on the page the person is on. */
+/** Navigation pills with aria-current on the page the person is on. */
 export function FamilyNav({ label, items }: { label: string; items: NavItem[] }) {
   const pathname = usePathname();
   return (
-    <nav aria-label={label} className="app-nav">
+    <nav aria-label={label} className="pb-nav">
       {items.map((item) => (
         <Link
           key={item.href}

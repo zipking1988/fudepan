@@ -6,6 +6,7 @@ import { getSession } from "@/lib/auth/session";
 import { chooseHousehold } from "@/lib/households/membership";
 import type { Language } from "@/lib/i18n/format";
 import { resolveLanguage } from "@/lib/i18n/language";
+import { hasInviteCookie } from "@/lib/membership/invite-cookie";
 import { listMemberships } from "@/lib/households/queries";
 import { resolveFamilyContext, type FamilyContext, type FamilyContextResult } from "./session-core";
 
@@ -53,6 +54,8 @@ export async function requireFamilyContext(
 > {
   const { supabase, user, result } = await getFamilyContext(requestedHouseholdId);
   if (!user || !result) redirect(`/login?next=${encodeURIComponent(path)}`);
+  // No household yet: an invite link in progress goes to /join, everyone else to /welcome.
+  if (result.kind === "no_household") redirect((await hasInviteCookie()) ? "/join" : "/welcome");
   if (result.kind !== "ok") return { kind: result.kind, language: await getRequestLanguage() };
   // Membership is verified: sweep this household after the response is sent (throttled, never throws).
   const householdId = result.context.householdId;

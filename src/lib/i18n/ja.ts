@@ -8,11 +8,17 @@
  * Risk labels (優先度低, 要注意, 高リスク) and approval labels (確認が必要, 確認済み, 承認されていません,
  * 完了) are different words, so they are never confused.
  */
+import { dashboardJa } from "./dashboard-ja";
+import { playfulJa } from "./playful-ja";
 import { eventJa } from "./event-ja";
+import { membershipJa } from "./membership-ja";
 import type { Messages } from "./en";
 
 export const ja: Messages = {
   ...eventJa,
+  ...membershipJa,
+  ...dashboardJa,
+  ...playfulJa,
   // Refusals
   "refusal.signedOut": "ログインが必要です。",
   "refusal.notFoundOrNoAccess": "このやることが見つからないか、見る権限がありません。",

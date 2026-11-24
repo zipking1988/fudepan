@@ -55,7 +55,7 @@ export async function updateSession(request: NextRequest) {
     url.searchParams.set("next", safeNextPath(pathname));
     return redirectKeepingSession(url, response);
   }
-  if (signedIn && pathname === "/login") {
+  if (signedIn && (pathname === "/login" || pathname === "/signup")) {
     const next = safeNextPath(request.nextUrl.searchParams.get("next"));
     return redirectKeepingSession(new URL(next, request.url), response);
   }

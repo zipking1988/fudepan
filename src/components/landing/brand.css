@@ -1,0 +1,64 @@
+/*
+ * The Fudepan brand bar, shared by the public landing, /login and the signed-in family pages.
+ * One wordmark (Wordmark in wordmark.tsx), one cream bar, one 64rem centered shell. The variables
+ * are set on the bar itself so it looks the same inside or outside the landing's `.lp` wrapper.
+ * Ink #1c1f4a on cream #faf5ec is 14.4:1.
+ */
+.lp-header,
+.lp-wordmark {
+  --lp-ink: #1c1f4a;
+  --lp-cream: #faf5ec;
+  --lp-line: rgb(28 31 74 / 0.12);
+  --lp-display: var(--lp-font-display), "Hiragino Maru Gothic ProN", "Hiragino Sans", var(--lp-font-text), sans-serif;
+}
+.lp-shell {
+  width: 100%;
+  max-width: 64rem;
+  margin-inline: auto;
+  padding-inline: 0.9rem;
+}
+
+@media (min-width: 640px) {
+  .lp-shell {
+    padding-inline: 1.25rem;
+  }
+}
+
+/* Header */
+
+.lp-header {
+  border-bottom: 1px solid var(--lp-line);
+  background: var(--lp-cream);
+}
+
+.lp-header__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-block: 0.7rem;
+}
+
+.lp-wordmark {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  padding-right: 0.85em;
+  color: var(--lp-ink);
+  font-family: var(--lp-display);
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.lp-wordmark__ticks {
+  position: absolute;
+  top: -0.15em;
+  right: 0;
+  width: 0.75em;
+  height: 0.65em;
+}
+

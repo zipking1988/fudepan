@@ -19,7 +19,7 @@
 -- household. All new rows are fake and rolled back.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(282);
+select plan(354);
 
 -- ---------------------------------------------------------------------------
 -- 1. Grants and search_path (programmatic, over the exact signatures)
@@ -77,7 +77,28 @@ insert into fn_list (sig) values
   -- escalation (migration 20261210000500, task 18.1)
   ('public.escalate_due_parts(uuid, timestamptz)'),
   -- recipient replies (migration 20261210000600, decision D17)
-  ('public.send_recipient_reply(uuid, uuid, text)');
+  ('public.send_recipient_reply(uuid, uuid, text)'),
+  -- membership (migrations 20261215000100 and 20261215000200, family-app-demo-parity)
+  ('public.create_household(uuid, text, text)'),
+  ('public.create_invite(uuid, uuid, text, bytea)'),
+  ('public.list_invites(uuid, uuid)'),
+  ('public.revoke_invite(uuid, uuid, uuid)'),
+  ('public.preview_invite(bytea)'),
+  ('public.accept_invite(bytea, uuid, text)'),
+  ('public.change_member_role(uuid, uuid, uuid, text)'),
+  ('public.deactivate_member(uuid, uuid, uuid)'),
+  ('public.leave_household(uuid, uuid)'),
+  ('public.set_member_display_name(uuid, uuid, text)'),
+  ('private.lock_active_members(uuid)'),
+  ('private.expire_overdue_invites(uuid)'),
+  ('private.notify_primaries(uuid, uuid, text, jsonb, uuid)'),
+  ('private.release_departing_member(uuid, uuid)'),
+  ('private.clean_display_name(text)'),
+  ('private.is_household_role(text)'),
+  ('private.lock_user_membership(uuid)'),
+  -- member portraits (migrations 20261216000000 and 20261218000000): trigger function, not
+  -- callable by clients and not granted to service_role
+  ('private.check_member_portrait()');
 
 select ok(to_regprocedure(sig) is not null, 'Function exists: ' || sig)
 from fn_list order by sig;
@@ -103,7 +124,9 @@ select ok(
   has_function_privilege('service_role', to_regprocedure(sig), 'execute'),
   'service_role can execute ' || sig
 )
-from fn_list order by sig;
+from fn_list
+where sig <> 'private.check_member_portrait()' -- trigger function, never called by server code
+order by sig;
 
 select ok(
   (select p.proconfig @> array['search_path=""'] from pg_proc p where p.oid = to_regprocedure(sig)),
@@ -178,6 +201,7 @@ values ('e4000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-0000000
 -- 04 household, low risk, owner Yui                     (volunteer_backup)
 -- 05 appointment, approval pending, owner Misa          (missing details, self-approval)
 -- 06 appointment, approved, unclaimed                   (legacy appointment clarification)
+-- 07 appointment, approved, owner Yui, proof listed but none recorded (completes without proof)
 insert into public.care_steps (
   id, care_chain_id, title, care_category, risk_level, approval_required, status,
   approval_state, owner_id, evidence_required
@@ -200,7 +224,10 @@ values
    'd2000000-0000-4000-8000-000000000002', '{}'),
   ('e5000000-0000-4000-8000-000000000006', 'e4000000-0000-4000-8000-000000000001',
    'SENTINEL-TITLE-6-zq7', 'appointment', 'high', true, 'in_progress', 'approved',
-   null, '{}');
+   null, '{}'),
+  ('e5000000-0000-4000-8000-000000000007', 'e4000000-0000-4000-8000-000000000001',
+   'SENTINEL-TITLE-7-zq7', 'appointment', 'high', true, 'in_progress', 'approved',
+   'd2000000-0000-4000-8000-000000000004', array['Receipt']);
 insert into public.part_missing_details (id, household_id, care_chain_id, care_step_id, kind, question_code)
 values
   ('e6000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', 'e4000000-0000-4000-8000-000000000001', 'e5000000-0000-4000-8000-000000000005', 'location', 'which_clinic'),
@@ -231,9 +258,10 @@ insert into drv (seq, label, sql, expected) values
   (8,  'confirm_part_time appointment', $q$ select public.confirm_part_time('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004', 'appointment', '2026-12-05 01:00:00+00', 'Asia/Tokyo') $q$, 'time.confirmed'),
   (9,  'decide_approval approve again', $q$ select public.decide_approval('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000002', 'approve') $q$, 'approval.given'),
   (10, 'record_evidence receipt', $q$ select public.record_evidence('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004', 'Receipt for SENTINEL-MEDS-zq7', 'text', null, 'SENTINEL-EVTEXT-zq7 receipt total') $q$, 'evidence.uploaded'),
-  (11, 'complete_part missing evidence', $q$ select public.complete_part('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004') $q$, 'part.evidence_missing'),
-  (12, 'record_evidence photo', $q$ select public.record_evidence('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004', 'Photo', 'text', null, 'SENTINEL-EVTEXT-zq7 second note') $q$, 'evidence.uploaded'),
-  (13, 'complete_part',         $q$ select public.complete_part('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004') $q$, 'part.completed'),
+  (11, 'record_evidence photo', $q$ select public.record_evidence('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004', 'Photo', 'text', null, 'SENTINEL-EVTEXT-zq7 second note') $q$, 'evidence.uploaded'),
+  (12, 'complete_part',         $q$ select public.complete_part('e5000000-0000-4000-8000-000000000001', 'd1000000-0000-4000-8000-000000000004') $q$, 'part.completed'),
+  -- Part 07: proof is listed but none was recorded; the Owner still completes
+  (13, 'complete_part without proof', $q$ select public.complete_part('e5000000-0000-4000-8000-000000000007', 'd1000000-0000-4000-8000-000000000004') $q$, 'part.completed'),
   -- Part 02: amount, task due time, failure, reopen
   (14, 'save_part_amount',      $q$ select public.save_part_amount('e5000000-0000-4000-8000-000000000002', 'd1000000-0000-4000-8000-000000000003', 987654321, 'JPY') $q$, 'missing_detail.resolved'),
   (15, 'confirm_part_time task_due', $q$ select public.confirm_part_time('e5000000-0000-4000-8000-000000000002', 'd1000000-0000-4000-8000-000000000003', 'task_due', '2026-12-07 03:00:00+00', 'Asia/Tokyo') $q$, 'time.confirmed'),
@@ -508,13 +536,22 @@ select is_empty(
        'handover.requested', 'handover.accepted', 'handover.declined', 'handover.not_accepted',
        'backup.requested', 'backup.accepted', 'backup.declined', 'backup.expired',
        'approval.given', 'approval.rejected', 'approval.reset', 'approval.resubmitted',
-       'time.confirmed', 'missing_detail.resolved', 'evidence.uploaded', 'part.evidence_missing',
+       'time.confirmed', 'missing_detail.resolved', 'evidence.uploaded',
        'part.completed', 'part.failed', 'part.reopened', 'reminder.sent', 'member.language_changed'
      ]) as want
      where want not in (
        select a.event_type from public.audit_events a join seq_audit s on s.id = a.id
      ) $$,
   'The sequence exercised every allow-listed event type'
+);
+
+-- Completion never writes an evidence_missing event or Feed_Item, with or without proof.
+select is(
+  (select count(*)::int from public.audit_events where event_type = 'part.evidence_missing'
+     and household_id = 'd0000000-0000-4000-8000-000000000001')
+  + (select count(*)::int from public.feed_items where kind = 'evidence_missing'
+     and household_id = 'd0000000-0000-4000-8000-000000000001'),
+  0, 'Completing Parts with and without proof writes no evidence_missing event or Feed_Item'
 );
 
 -- Every string value (at any depth) is an ID, a code, an ISO time, or a zone name.

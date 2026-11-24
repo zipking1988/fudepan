@@ -18,13 +18,30 @@ import {
 } from "@/lib/care/rules/requests";
 import type { RefusalCode } from "@/lib/care/rules/refusals";
 import type { HelperRole, MemberSnapshot, PartSnapshot } from "@/lib/care/rules/types";
-import type { HouseholdRole } from "@/lib/households/membership";
+import { isHouseholdRole, type HouseholdRole } from "@/lib/households/membership";
 import type { EventPart, EventTime, PendingRequestView } from "@/lib/family/shared-care-event";
 
 export type EventViewer = { memberId: string; householdId: string; role: HouseholdRole };
 
 /** An active member who could receive a request. */
 export type ReceiverOption = { id: string; name: string; role: HouseholdRole };
+
+function compareText(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
+ * The member list a card works with: active members with a known role, sorted by display name,
+ * then id, so every caller passes the same list in the same order.
+ */
+export function receiverOptionsFrom(
+  rows: readonly { id: string; displayName: string; role: string; isActive?: boolean }[],
+): ReceiverOption[] {
+  return rows
+    .filter((m) => m.isActive !== false && isHouseholdRole(m.role))
+    .map((m) => ({ id: m.id, name: m.displayName, role: m.role as HouseholdRole }))
+    .sort((a, b) => compareText(a.name, b.name) || compareText(a.id, b.id));
+}
 
 export type PartOffers = {
   claim: HelperRole[];

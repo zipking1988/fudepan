@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import { LoadingStatus } from "@/app/(family)/loading-status";
+import { PaperLoading } from "@/app/(family)/loading-status";
 
 import { listHouseholdMemberOptions, getSharedCareEvent } from "@/lib/care/queries";
 import { getEventTimeline } from "@/lib/care/timeline";
@@ -11,25 +11,32 @@ import { createTranslator } from "@/lib/i18n/messages";
 
 import { ConnectedEventView } from "./event-view-connected";
 
-export default function EventPage({ params }: PageProps<"/family/events/[noteId]">) {
+export default function EventPage({ params, searchParams }: PageProps<"/family/events/[noteId]">) {
   return (
-    <Suspense fallback={<LoadingStatus />}>
-      <EventContent params={params} />
+    <Suspense fallback={<PaperLoading />}>
+      <EventContent params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function EventContent({ params }: { params: PageProps<"/family/events/[noteId]">["params"] }) {
+async function EventContent({
+  params,
+  searchParams,
+}: {
+  params: PageProps<"/family/events/[noteId]">["params"];
+  searchParams: PageProps<"/family/events/[noteId]">["searchParams"];
+}) {
   const { noteId } = await params;
+  const { task } = await searchParams;
   const outcome = await requireFamilyContext(`/family/events/${noteId}`);
   if (outcome.kind !== "ok") {
     const tr = createTranslator(outcome.language);
     const key = outcome.kind === "no_household" ? "family.noHousehold" : "family.notMember";
     return (
-      <>
-        <h1 className="app-title">{tr.t(`${key}.title`)}</h1>
-        <p className="app-lede">{tr.t(`${key}.body`)}</p>
-      </>
+      <div className="pb-state">
+        <h1 className="pb-state__title">{tr.t(`${key}.title`)}</h1>
+        <p>{tr.t(`${key}.body`)}</p>
+      </div>
     );
   }
   const { context, supabase } = outcome;
@@ -49,13 +56,12 @@ async function EventContent({ params }: { params: PageProps<"/family/events/[not
   return (
     <ConnectedEventView
       event={event}
-      viewer={{ memberId: context.memberId, householdId: context.householdId, role: context.role }}
+      viewer={{ memberId: context.memberId, householdId: context.householdId, role: context.role, name: context.displayName }}
       members={members}
       language={context.language}
       nowIso={new Date().toISOString()}
       timeline={timeline}
-      viewerName={context.displayName}
-      recipientName={options.find((m) => m.role === "care_recipient")?.displayName ?? null}
+      initialTaskId={typeof task === "string" ? task : null}
     />
   );
 }

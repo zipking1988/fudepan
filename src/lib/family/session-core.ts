@@ -55,14 +55,19 @@ export function resolveFamilyContext(
   };
 }
 
-export type FamilyLink = { href: string; labelKey: "nav.feed" | "nav.capture" | "nav.language" };
+export type FamilyLink = { href: string; labelKey: "nav.feed" | "nav.capture" | "nav.language" | "nav.members" };
 
 /** Care recipients get the feed and the camera only (Requirement 13.1). */
 export function familyLinks(role: HouseholdRole): FamilyLink[] {
   const feed: FamilyLink = { href: "/family", labelKey: "nav.feed" };
   const capture: FamilyLink = { href: "/family/capture", labelKey: "nav.capture" };
   if (isRecipient(role)) return [capture, feed];
-  return [feed, capture, { href: "/family/settings/language", labelKey: "nav.language" }];
+  return [
+    feed,
+    capture,
+    { href: "/family/members", labelKey: "nav.members" },
+    { href: "/family/settings/language", labelKey: "nav.language" },
+  ];
 }
 
 /** Whether a nav link is the current page. The feed link also covers event pages. */

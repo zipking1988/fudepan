@@ -7,6 +7,7 @@ import { SIGN_IN_HELP } from "./help";
 const all = [
   SIGN_IN_HELP.title,
   ...SIGN_IN_HELP.noAccount.steps,
+  SIGN_IN_HELP.demoStep,
   ...SIGN_IN_HELP.forgotPassword.steps,
 ]
   .join(" ")
@@ -15,8 +16,9 @@ const all = [
 describe("sign-in help matches how accounts work today", () => {
   it("says who to contact and what to ask for, for both problems", () => {
     expect(SIGN_IN_HELP.noAccount.steps.join(" ")).toMatch(/organizes care in your household/);
-    expect(SIGN_IN_HELP.noAccount.steps.join(" ")).toMatch(/request an account/);
-    expect(SIGN_IN_HELP.noAccount.steps.join(" ")).toMatch(/email address you want to use/);
+    expect(SIGN_IN_HELP.noAccount.steps.join(" ")).toMatch(/invite link/);
+    expect(SIGN_IN_HELP.noAccount.steps.join(" ")).not.toMatch(/Create an account/);
+    expect(SIGN_IN_HELP.demoStep).toMatch(/Sign in to the demo/);
     expect(SIGN_IN_HELP.forgotPassword.steps.join(" ")).toMatch(/household organizer/);
     expect(SIGN_IN_HELP.forgotPassword.steps.join(" ")).toMatch(/password reset/);
   });
@@ -30,12 +32,12 @@ describe("sign-in help matches how accounts work today", () => {
     );
   });
 
-  it("stays true to the auth settings: public sign-up is off", () => {
+  it("stays true to the auth settings: sign-up is on", () => {
     const config = readFileSync(new URL("../../../supabase/config.toml", import.meta.url), "utf8");
     const auth = config.slice(
       config.indexOf("[auth]"),
       config.indexOf("[auth.", config.indexOf("[auth]") + 1),
     );
-    expect(auth).toMatch(/^enable_signup = false$/m);
+    expect(auth).toMatch(/^enable_signup = true$/m);
   });
 });

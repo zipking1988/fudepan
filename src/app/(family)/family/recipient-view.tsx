@@ -1,7 +1,10 @@
+import { firstRunPrompts } from "@/lib/membership/first-run";
 import Link from "next/link";
-import { sentencesForPart, recipientSentences, type RecipientSentence } from "@/lib/family/recipient-sentences";
+import { recipientSentences, type RecipientSentence } from "@/lib/family/recipient-sentences";
 import type { SharedCareEvent } from "@/lib/family/shared-care-event";
 import { createTranslator, type Language, type Translator } from "@/lib/i18n/messages";
+import { buildEventCard, type CardWhen } from "@/lib/family/event-card";
+import { ICON, initial, monthName, timeText, weekdayName } from "./card-parts";
 import { ReadAloudButton, ReplyButtons } from "./recipient-actions";
 import { TodayLine } from "./today-line";
 
@@ -91,6 +94,135 @@ function plainText(sentences: RecipientSentence[], tr: Translator): string {
   return sentences.map((s) => tr.t(s.key, s.params)).join(" ");
 }
 
+/** "11月27日（金）" / "Fri, Nov 27": the full date line inside the big orange block. */
+function dateLine(when: Exclude<CardWhen, { kind: "unknown" }>, language: Language): string {
+  const weekday = weekdayName(when.weekday, language);
+  return language === "ja"
+    ? `${when.month}月${when.day}日（${weekday}）`
+    : `${weekday}, ${monthName(when.month, language)} ${when.day}`;
+}
+/**
+ * Grandma's picture card: her name, one big orange block with the date, time and
+ * place, faces of who goes with her, and icons for what to bring. Only a time the
+ * family confirmed is shown (Requirement 13); otherwise "your family is checking the time".
+ */
+export function GrandmaCard({
+  event,
+  language,
+  name,
+  headingLevel = "h2",
+}: {
+  event: SharedCareEvent;
+  language: Language;
+  name?: string;
+  headingLevel?: "h1" | "h2";
+}) {
+  const tr = createTranslator(language);
+  const card = buildEventCard(event, { mainRule: "nextOpen" });
+  const main = card.main;
+  if (!main) return null;
+  const when: CardWhen = main.when.kind === "confirmed" ? main.when : { kind: "unknown" };
+  const time = timeText(when);
+  const people = main.slots.filter((s) => s.role !== "owner");
+  const shown = people.length > 0 ? people : main.slots;
+  const Heading = headingLevel;
+  const what = (
+    <p className="grandma-card__what">
+      <span aria-hidden="true">{ICON[main.icon]}</span>
+      {main.place ?? tr.t(`card.icon.${main.icon}` as "card.icon.clinic")}
+    </p>
+  );
+  return (
+    <div className="grid gap-5">
+      {name && <Heading className="grandma-card__name">{tr.t("grandma.name", { name })}</Heading>}
+      {time && when.kind !== "unknown" ? (
+        <div className="grandma-card__hero">
+          <p className="grandma-card__date">{dateLine(when, language)}</p>
+          <p className="grandma-card__time">{time}</p>
+          {what}
+        </div>
+      ) : (
+        <div className="grandma-card__hero grandma-card__hero--waiting">
+          <p className="grandma-card__waiting">
+            <span aria-hidden="true">⏳</span> {tr.t("grandma.timeChecking")}
+          </p>
+          {what}
+        </div>
+      )}
+      <div className="grid gap-3">
+        <h3 className="grandma-card__label">{tr.t("grandma.goingWith")}</h3>
+        <ul className="flex flex-wrap justify-center gap-6">
+          {shown.map((slot) => (
+            <li key={slot.role} className="grid justify-items-center gap-1">
+              <span
+                aria-hidden="true"
+                className={`grandma-card__face ${slot.member ? "" : "grandma-card__face--empty"}`}
+              >
+                {slot.member ? initial(firstName(slot.member.name)) : "?"}
+              </span>
+              <span className="text-xl">{slot.member ? firstName(slot.member.name) : tr.t("grandma.notYet")}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      {card.items.length > 0 && (
+        <div className="grid gap-3">
+          <h3 className="grandma-card__label">{tr.t("grandma.bring")}</h3>
+          <ul className="flex flex-wrap justify-center gap-5">
+            {card.items.map((item) => (
+              <li key={item.partId} className="grid justify-items-center gap-1 text-center">
+                <span className="text-5xl" aria-hidden="true">
+                  {item.done ? "✅" : ICON[item.icon]}
+                </span>
+                <span className="text-lg text-stone-700">{item.title}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+/** The two big square buttons under Grandma's card: read it to me, and photograph a new note. */
+export function GrandmaButtons({
+  text,
+  language,
+  onMemo,
+}: {
+  text: string;
+  language: Language;
+  /** On /demo the memo button runs this instead of opening the camera page. */
+  onMemo?: () => void;
+}) {
+  const tr = createTranslator(language);
+  const inner = (
+    <>
+      <span aria-hidden="true" className="text-4xl">
+        📷
+      </span>
+      <span>{tr.t("grandma.memo")}</span>
+    </>
+  );
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <ReadAloudButton text={text} language={language} variant="tile" />
+      {onMemo ? (
+        <button type="button" onClick={onMemo} className="grandma-card__tile grandma-card__tile--dark">
+          {inner}
+        </button>
+      ) : (
+        <Link href="/family/capture" className="grandma-card__tile grandma-card__tile--dark">
+          {inner}
+        </Link>
+      )}
+    </div>
+  );
+}
+/** What Grandma's speaker button reads for one event. */
+export function grandmaSpeech(event: SharedCareEvent, language: Language): string {
+  const tr = createTranslator(language);
+  return `${titleOf(event, tr)}. ${plainText(forGrandma(recipientSentences(event, language)), tr)}`;
+}
 export function TakePhotoLink({ tr }: { tr: Translator }) {
   return (
     <Link href="/family/capture" className="app-button family-recipient__photo family-assistant__photo">
@@ -140,9 +272,18 @@ export function RecipientHomeView({
       <AssistantSays text={says} />
 
       {mood === "nothingYet" && (
-        <p>
-          <TakePhotoLink tr={tr} />
-        </p>
+        <>
+          {firstRunPrompts({
+            viewerRole: "care_recipient",
+            eventCount: events.length,
+            activeMemberCount: 0,
+            hasActiveRecipient: true,
+            dismissed: new Set(),
+          }).includes("recipient_take_photo") && <p>{tr.t("firstRun.recipient.body")}</p>}
+          <p>
+            <TakePhotoLink tr={tr} />
+          </p>
+        </>
       )}
 
       {comingUp && (
@@ -150,9 +291,9 @@ export function RecipientHomeView({
           <p className="family-assistant__kicker" id="coming-up">
             {tr.t("assistant.comingUp")}
           </p>
-          <h2 className="family-assistant__title">{titleOf(comingUp, tr)}</h2>
-          <SentenceList sentences={comingSentences} tr={tr} />
-          <ReadAloudButton
+          <h2 className="sr-only">{titleOf(comingUp, tr)}</h2>
+          <GrandmaCard event={comingUp} language={language} />
+          <GrandmaButtons
             text={`${greeting} ${says} ${titleOf(comingUp, tr)}. ${plainText(comingSentences, tr)}`}
             language={language}
           />
@@ -175,21 +316,21 @@ export function RecipientHomeView({
               const headingId = `recipient-note-${event.noteId}`;
               return (
                 <li key={event.noteId}>
-                  <article aria-labelledby={headingId} className="family-assistant__card grid gap-3">
-                    <h3 id={headingId} className="text-2xl font-bold">
+                  <Link
+                    href={`/family/me/${event.noteId}`}
+                    aria-labelledby={headingId}
+                    className="family-assistant__card family-assistant__noteTile"
+                  >
+                    <span aria-hidden="true" className="text-4xl">
+                      {event.done ? "✅" : event.state === "ready" ? ICON[buildEventCard(event).main?.icon ?? "home"] : "⏳"}
+                    </span>
+                    <span id={headingId} className="text-xl font-bold">
                       {titleOf(event, tr)}
-                    </h3>
-                    <SentenceList sentences={forGrandma(recipientSentences(event, language))} tr={tr} />
-                    <p>
-                      <Link
-                        href={`/family/me/${event.noteId}`}
-                        className="app-link family-recipient__link"
-                        aria-describedby={headingId}
-                      >
-                        {tr.t("recipient.see")}
-                      </Link>
-                    </p>
-                  </article>
+                    </span>
+                    <span aria-hidden="true" className="text-3xl">
+                      ›
+                    </span>
+                  </Link>
                 </li>
               );
             })}
@@ -206,21 +347,21 @@ export function RecipientHomeView({
   );
 }
 
-export function RecipientEventView({ event, language }: { event: SharedCareEvent; language: Language }) {
+export function RecipientEventView({
+  event,
+  language,
+  recipientName,
+}: {
+  event: SharedCareEvent;
+  language: Language;
+  recipientName?: string | null;
+}) {
   const tr = createTranslator(language);
   const src = `/notes/${event.noteId}/image`;
   const detailed = event.state === "ready" && !event.done && event.parts.length > 0;
-  const groups = detailed
-    ? event.parts.map((part) => {
-        const sentences = forGrandma(sentencesForPart(part, language));
-        return { part, sentences: sentences.length === 0 ? [{ key: "recipient.allDone" } as RecipientSentence] : sentences };
-      })
-    : [];
   const flat = detailed ? [] : forGrandma(recipientSentences(event, language));
-  const spoken = detailed
-    ? groups.map((g) => `${g.part.title}. ${plainText(g.sentences, tr)}`).join(" ")
-    : plainText(flat, tr);
-
+  const name = firstName(recipientName);
+  const spoken = detailed ? forGrandma(recipientSentences(event, language)) : flat;
   return (
     <div className={`${TEXT} grid gap-8`}>
       <p>
@@ -228,26 +369,18 @@ export function RecipientEventView({ event, language }: { event: SharedCareEvent
           {tr.t("recipient.back")}
         </Link>
       </p>
-      <h1 className="family-assistant__hello">{titleOf(event, tr)}</h1>
-      <ReadAloudButton text={`${titleOf(event, tr)}. ${spoken}`} language={language} />
       {detailed ? (
-        <ul className="grid gap-6">
-          {groups.map(({ part, sentences }) => {
-            const headingId = `recipient-part-${part.id}`;
-            return (
-              <li key={part.id}>
-                <section aria-labelledby={headingId} className="family-assistant__card grid gap-3">
-                  <h2 id={headingId} className="text-2xl font-bold">
-                    {part.title}
-                  </h2>
-                  <SentenceList sentences={sentences} tr={tr} />
-                </section>
-              </li>
-            );
-          })}
-        </ul>
+        <section aria-label={titleOf(event, tr)} className="grandma-card grid gap-6">
+          {!name && <h1 className="grandma-card__name">{titleOf(event, tr)}</h1>}
+          <GrandmaCard event={event} language={language} name={name || undefined} headingLevel="h1" />
+          <GrandmaButtons text={`${titleOf(event, tr)}. ${plainText(spoken, tr)}`} language={language} />
+        </section>
       ) : (
-        <SentenceList sentences={flat} tr={tr} />
+        <>
+          <h1 className="family-assistant__hello">{titleOf(event, tr)}</h1>
+          <SentenceList sentences={flat} tr={tr} />
+          <ReadAloudButton text={`${titleOf(event, tr)}. ${plainText(flat, tr)}`} language={language} />
+        </>
       )}
       {event.state === "ready" && <ReplyButtons noteId={event.noteId} language={language} />}
       <section aria-labelledby="recipient-photo" className="grid gap-3">

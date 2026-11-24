@@ -84,13 +84,26 @@ describe("RecipientHomeView", () => {
     expect(html).toContain("Coming up");
   });
 
-  it("shows plain sentences for the clinic visit and links to the detail page", () => {
+  it("shows the visit as a picture card: icon, who goes with her, and no unconfirmed time", () => {
+    expect(html).toContain("🏥");
     expect(html).toContain("Clinic visit");
-    expect(html).toContain("Misa is going with you.");
-    expect(html).toContain("The time is not confirmed yet.");
-    expect(html).toContain("Your family still needs to find out: which clinic.");
-    expect(html).not.toContain("2030");
+    expect(html).toContain("Going with you");
+    expect(html).toContain(">Misa<"); // her companion as a face with a name
+    expect(html).toContain("Your family is checking the time");
+    expect(html).not.toContain("2030"); // a model-suggested time is never shown to her
     expect(html).toContain(`href="/family/me/${NOTE}"`);
+  });
+
+  it("shows a family-confirmed time big, in its own zone", () => {
+    const confirmed = renderToStaticMarkup(
+      <RecipientHomeView
+        events={[event({ parts: [part({ confirmed: { ...noTimes, appointment: { at: "2026-11-27T05:30:00Z", timeZone: "Asia/Tokyo", provenance: "human_confirmed" } } })] })]}
+        language="en"
+      />,
+    );
+    expect(confirmed).toContain(">14:30<");
+    expect(confirmed).toContain("Fri, Nov 27");
+    expect(confirmed).not.toContain("Your family is checking the time");
   });
 
   it("uses large-text classes and no internal words", () => {
@@ -98,11 +111,11 @@ describe("RecipientHomeView", () => {
     expect(html.replace(/<[^>]*>/g, " ")).not.toMatch(INTERNAL);
   });
 
-  it("shows only 'Done.' for a completed event and hides the title until ready", () => {
+  it("shows a finished note as ✅ and a note being read as ⏳, hiding the title until ready", () => {
     const done = renderToStaticMarkup(
       <RecipientHomeView events={[event({ done: true, parts: [part({ progressStatus: "completed" })] })]} language="en" />,
     );
-    expect(done).toContain("Done.");
+    expect(done).toContain("✅");
     expect(done).not.toContain("which clinic");
     expect(done).toContain("Everything on your notes is done. You can rest.");
     expect(buttonLabels(done)).toEqual([]); // nothing coming up, so nothing to reply to here
@@ -110,7 +123,7 @@ describe("RecipientHomeView", () => {
       <RecipientHomeView events={[event({ state: "reading", title: "Secret title", parts: [] })]} language="en" />,
     );
     expect(reading).not.toContain("Secret title");
-    expect(reading).toContain("Your family is reading your note.");
+    expect(reading).toContain("⏳");
     expect(reading).toContain("I'm reading your note now.".replace("'", "&#x27;"));
   });
 
@@ -126,9 +139,9 @@ describe("RecipientEventView", () => {
   const html = renderToStaticMarkup(<RecipientEventView event={event()} language="en" />);
   const text = html.replace(/<[^>]*>/g, " ");
 
-  it("has sentences, a photo with alt text, a back link, the photo action and the two replies", () => {
-    expect(html).toContain("The time is not confirmed yet.");
-    expect(html).toContain("which clinic");
+  it("shows the picture card, a photo with alt text, a back link, the photo action and the two replies", () => {
+    expect(html).toContain("Your family is checking the time");
+    expect(html).toContain("Going with you");
     expect(html).toContain(`src="/notes/${NOTE}/image"`);
     expect(html).toContain('alt="The photo of your note, as you sent it"');
     expect(html).toContain('href="/family"');
@@ -138,6 +151,21 @@ describe("RecipientEventView", () => {
     expect(html).not.toContain("/timeline");
   });
 
+  it("shows the screenshot card: name, orange date/time block, faces, read and note buttons", () => {
+    const ja = renderToStaticMarkup(
+      <RecipientEventView
+        event={event({ parts: [part({ confirmed: { ...noTimes, appointment: { at: "2026-11-27T05:30:00Z", timeZone: "Asia/Tokyo", provenance: "human_confirmed" } } })] })}
+        language="ja"
+        recipientName="春子（母）"
+      />,
+    );
+    expect(ja).toMatch(/<h1[^>]*>春子さん<\/h1>/);
+    expect(ja).toContain("11月27日（金）");
+    expect(ja).toContain(">14:30<");
+    expect(ja).toContain("いっしょに行く人");
+    expect(ja).toContain(">メモ<");
+    expect(ja).toContain('href="/family/capture"');
+  });
   it("leaves out evidence, amounts, reminders and internal words", () => {
     expect(text).not.toMatch(INTERNAL);
     expect(text).not.toMatch(/receipt|evidence|reminder|claim|approve/i);

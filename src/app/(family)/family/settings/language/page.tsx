@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { LoadingStatus } from "@/app/(family)/loading-status";
+import { redirect } from "next/navigation";
 import { requireFamilyContext } from "@/lib/family/session";
+import { recipientRouteDecision } from "@/lib/membership/routing";
 import { createTranslator } from "@/lib/i18n/messages";
 import { LanguageForm } from "./language-form";
 
@@ -12,7 +14,7 @@ export default function LanguagePage() {
   );
 }
 
-/** Works for any signed-in member, including the care recipient (the nav only hides the link). */
+/** Family members only. A care recipient is sent back to /family. */
 async function LanguageSettings() {
   const outcome = await requireFamilyContext("/family/settings/language");
   if (outcome.kind !== "ok") {
@@ -26,5 +28,7 @@ async function LanguageSettings() {
     );
   }
   const { context } = outcome;
+  const decision = recipientRouteDecision(context.role, "/family/settings/language");
+  if (decision.kind === "redirect") redirect(decision.to);
   return <LanguageForm householdId={context.householdId} language={context.language} />;
 }

@@ -1,0 +1,492 @@
+/*
+ * Family pages: the landing's warm header and type on every signed-in family page, and the
+ * additions the family board needs on top of the landing's own classes (landing.css).
+ * Contrast follows the landing's checked pairs (see landing.css).
+ */
+.fb-shell {
+  --fb-ink: #1c1f4a;
+  --fb-text: #34364f;
+  --fb-muted: #55576d;
+  --fb-cream: #faf5ec;
+  --fb-paper: #fffdf9;
+  --fb-lavender: #e7e8f8;
+  --fb-violet: #6f6bd3;
+  --fb-violet-soft: #a8a6dd;
+  --fb-violet-ink: #2e2a86;
+  --fb-navy: #262a78;
+  --fb-navy-hover: #1a1d5c;
+  --fb-ember: #a6462a;
+  --fb-ember-hover: #8a3a22;
+  --fb-green: #3c6b33;
+  --fb-green-hover: #2f5628;
+  --fb-green-bg: #e9f0e2;
+  --fb-green-ink: #23401d;
+  --fb-mine-bg: #e3e3f8;
+  --fb-open-bg: #f3f1ec;
+  --fb-unassigned-bg: #e6e4ec;
+  --fb-unassigned-ink: #2a2836;
+  --fb-pending-bg: #dcdbf7;
+  --fb-pending-ink: #2e2a86;
+  --fb-gold: #e4a72f;
+  --fb-gold-bg: #fff4dc;
+  --fb-line: rgb(28 31 74 / 0.12);
+  --fb-line-strong: rgb(28 31 74 / 0.28);
+  --fb-shadow: 0 18px 40px -22px rgb(40 36 80 / 0.35), 0 2px 6px -2px rgb(40 36 80 / 0.12);
+  --fb-display: var(--lp-font-display), "Hiragino Maru Gothic ProN", "Hiragino Sans", var(--lp-font-text), sans-serif;
+  --fb-body: var(--lp-font-text), "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+  --focus-ring: var(--fb-ink);
+}
+
+/* ------------------------------------------------------------------ shell */
+.app-shell.fb-shell {
+  background: var(--fb-cream);
+  color: var(--fb-text);
+  font-family: var(--fb-body);
+}
+.fb-shell .app-header {
+  gap: 0.5rem 1rem;
+  padding: 0.6rem clamp(0.9rem, 4vw, 2.5rem);
+  border-bottom: 1px solid var(--fb-line);
+  background: var(--fb-cream);
+}
+.fb-shell .app-wordmark {
+  color: var(--fb-ink);
+  font-family: var(--fb-display);
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+.fb-shell .app-nav {
+  order: 3;
+  flex-basis: 100%;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  margin-right: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fb-shell .app-nav a {
+  flex: none;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  color: var(--fb-navy);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.fb-shell .app-nav a:hover {
+  background: var(--fb-lavender);
+}
+.fb-shell .app-nav a[aria-current="page"] {
+  background: var(--fb-navy);
+  color: #fff;
+}
+.fb-shell .app-header > form {
+  order: 2;
+  margin-left: auto;
+}
+.fb-shell .app-header > p[role="status"] {
+  order: 1;
+  margin-left: auto;
+  white-space: nowrap;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  background: var(--fb-pending-bg);
+  color: var(--fb-pending-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.fb-shell .app-header > p[role="status"] + form {
+  margin-left: 0;
+}
+.fb-shell .app-header .app-button--quiet {
+  min-height: 2.5rem;
+  padding: 0.25rem 0.9rem;
+  font-size: 0.9rem;
+}
+@media (min-width: 900px) {
+  .fb-shell .app-nav {
+    order: 0;
+    flex-basis: auto;
+    margin-right: auto;
+  }
+  .fb-shell .app-header > form {
+    margin-left: 0;
+  }
+}
+@media (max-width: 639px) {
+  .fb-shell .app-wordmark {
+    font-size: 1.3rem;
+  }
+  .fb-shell .app-header > p[role="status"] {
+    font-size: 0.8rem;
+  }
+  .fb-shell .app-header .app-button--quiet {
+    min-height: 2.75rem;
+    padding: 0.2rem 0.7rem;
+    font-size: 0.85rem;
+  }
+  .fb-shell .app-nav a {
+    padding: 0.2rem 0.7rem;
+    font-size: 0.9rem;
+  }
+}
+.fb-shell .app-main {
+  padding-top: clamp(1rem, 3vw, 2.25rem);
+}
+
+
+/* ------------------------------------------------------------------ family board */
+/* The landing's tokens and type, inside the signed-in app. `.lp` itself sets the cream page. */
+.lp.lp-family {
+  display: grid;
+  gap: 1.25rem;
+  background: transparent;
+}
+.lp-family .lp-app {
+  margin-top: 0;
+}
+.lp-family__board {
+  display: grid;
+  gap: 1rem;
+}
+/* Member pictures: real accounts have no photo, so a letter on a soft color. */
+.lp-initial {
+  display: inline-grid;
+  place-items: center;
+  background: var(--lp-lavender);
+  color: var(--lp-violet-ink);
+  font-family: var(--lp-display);
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
+  user-select: none;
+}
+.lp-avatar--large.lp-initial {
+  font-size: 1.8rem;
+}
+.lp-initial[data-tone="you"] {
+  background: var(--lp-violet-ink);
+  color: #fff;
+}
+.lp-initial[data-tone="recipient"] {
+  background: #fde3d6;
+  color: #7a2e14;
+}
+.lp-initial .lp-icon {
+  width: 60%;
+  height: 60%;
+}
+/* The person cared for, in the landing's photo frame: a warm portrait that fills as tasks finish. */
+.lp-portrait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    linear-gradient(to top, rgb(60 107 51 / 0.18) var(--done, 0%), transparent var(--done, 0%)),
+    radial-gradient(circle at 50% 38%, #fde9dc 0 32%, transparent 33%),
+    linear-gradient(160deg, #f6e7d6, #ead6c3);
+}
+.lp-portrait__letter {
+  display: grid;
+  place-items: center;
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fde3d6;
+  box-shadow: 0 0 0 4px #fff, 0 10px 24px -12px rgb(60 40 20 / 0.5);
+  color: #7a2e14;
+  font-family: var(--lp-display);
+  font-size: clamp(1.8rem, 6vw, 3rem);
+  font-weight: 900;
+}
+.lp-portrait__letter .lp-icon {
+  width: 55%;
+  height: 55%;
+}
+.lp-portrait[data-all-done] .lp-portrait__letter {
+  box-shadow: 0 0 0 4px var(--lp-green), 0 10px 24px -12px rgb(60 40 20 / 0.5);
+}
+.lp-party__portrait .lp-portrait {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+}
+.lp-pill--rejected {
+  border-color: #9a2414;
+  background: #fff;
+  color: #9a2414;
+}
+/* Switch between the household's notes. */
+.lp-notes ul {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0 0 0.25rem;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: thin;
+}
+.lp-notes__chip {
+  display: grid;
+  gap: 0.05rem;
+  min-width: 10rem;
+  max-width: 16rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.85rem;
+  border: 1.5px solid var(--lp-line-strong);
+  border-radius: 0.9rem;
+  background: var(--lp-paper);
+  color: var(--lp-ink);
+  text-decoration: none;
+}
+.lp-notes__chip:hover {
+  background: var(--lp-lavender);
+}
+.lp-notes__chip[aria-current="page"] {
+  border-color: var(--lp-violet);
+  background: var(--lp-mine-bg);
+}
+.lp-notes__title {
+  overflow: hidden;
+  font-weight: 700;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-notes__state {
+  color: var(--lp-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+/* No note yet, being read, or could not be read: one clear way forward. */
+.lp-start {
+  display: grid;
+  justify-items: start;
+  gap: 0.9rem;
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: var(--lp-open-bg);
+  font-size: 1.05rem;
+}
+.lp-start__hint {
+  color: var(--lp-muted);
+  font-size: 0.9rem;
+}
+.lp-start__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+@media (max-width: 639px) {
+  .lp-start .lp-btn--large {
+    width: 100%;
+  }
+}
+/* A quoted line of the note, quieter than "Person to ask". */
+.lp-task__source--quiet {
+  color: var(--lp-muted);
+  font-weight: 400;
+}
+/* What the family saved: green like "done", with who saved it and that it is not from the note. */
+.lp-task__fact--saved {
+  width: auto;
+  border: 1.5px solid var(--lp-green);
+}
+.lp-task__factSource {
+  font-size: 0.85rem;
+}
+.lp-task__fact strong {
+  overflow-wrap: anywhere;
+}
+.lp-task__why {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--lp-text);
+  font-size: 0.9rem;
+}
+.lp-task__missing .lp-task__ask {
+  font-weight: 700;
+}
+/* Forms that open inside a task, full width under it (like the landing's clinic form). */
+.lp-task__form {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.9rem;
+  padding: 0.75rem 0.85rem;
+  border: 1.5px solid var(--lp-line-strong);
+  border-radius: 0.8rem;
+  background: var(--lp-paper);
+}
+.lp-task__formTitle {
+  color: var(--lp-ink);
+  font-weight: 700;
+}
+.lp-task__said {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.7rem;
+  background: var(--lp-green-bg);
+  color: #23401d;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.lp-task__said[data-tone="error"] {
+  background: #fbe4df;
+  color: #9a2414;
+}
+.lp-task__said .lp-icon {
+  margin-top: 0.2em;
+}
+/* Every other option of a task (hand over, backup, deadlines, not approved, report a problem). */
+.lp-task__more {
+  grid-column: 1 / -1;
+}
+.lp-task__more > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--lp-navy);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+}
+.lp-task__more[open] > div {
+  margin-top: 0.4rem;
+}
+.lp-task__more article {
+  border-width: 1px;
+  border-color: var(--lp-line);
+  border-radius: 0.9rem;
+}
+.lp-app__status p[data-tone="working"] {
+  background: var(--lp-lavender);
+  color: var(--lp-violet-ink);
+}
+.lp-app__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 1rem;
+}
+.lp-app__links .lp-app__noteLink {
+  min-height: 2.75rem;
+  color: var(--lp-navy);
+}
+/* The care recipient's recorded replies, under the thanks board. */
+.lp-replies {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+.lp-replies__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.lp-replies ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-replies li {
+  display: grid;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.7rem;
+  background: var(--lp-paper);
+}
+.lp-replies__text {
+  color: var(--lp-ink);
+  font-weight: 700;
+}
+.lp-replies__at {
+  color: var(--lp-muted);
+  font-size: 0.85rem;
+}
+/* Older pieces shown on the board (forms, first-run prompts, updates) in the landing's look. */
+.lp-family .app-panel {
+  border: 1px solid var(--lp-line);
+  border-radius: 1.1rem;
+  background: var(--lp-paper);
+  box-shadow: none;
+}
+.lp-family .app-subtitle {
+  color: var(--lp-ink);
+  font-family: var(--lp-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.lp-family .app-button {
+  min-height: 2.75rem;
+  border: 2px solid var(--lp-navy);
+  border-radius: 0.85rem;
+  background: var(--lp-navy);
+  color: #fff;
+  font-family: var(--lp-display);
+  font-weight: 700;
+}
+.lp-family .app-button:hover {
+  background: var(--lp-navy-hover);
+}
+.lp-family .app-button--quiet {
+  border-color: var(--lp-line-strong);
+  background: var(--lp-paper);
+  color: var(--lp-navy);
+}
+.lp-family .app-button--quiet:hover {
+  background: var(--lp-lavender);
+}
+.lp-family .app-input {
+  border-color: var(--lp-line-strong);
+  border-radius: 0.6rem;
+  background: #fff;
+}
+.lp-updates {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--lp-line);
+  border-radius: 1.1rem;
+  background: var(--lp-paper);
+}
+.lp-updates h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+.lp-updates ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-updates li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+}
+.lp-updates a {
+  min-height: 2.75rem;
+  color: var(--lp-navy);
+  font-weight: 700;
+}
+.lp-new {
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  background: var(--lp-ember);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}

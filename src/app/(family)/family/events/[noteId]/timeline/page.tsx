@@ -38,7 +38,9 @@ async function EventTimeline({ params }: { params: Promise<{ noteId: string }> }
   if (error) throw new Error("timeline_note_query_failed");
   if (!note) notFound();
 
-  const entries = await getEventTimeline(supabase, noteId);
+  const entries = await getEventTimeline(supabase, noteId, {
+    leftSuffix: createTranslator(context.language).t("member.leftSuffix"),
+  });
   return (
     <EventTimelineView entries={entries} language={context.language} eventHref={`/family/events/${noteId}`} />
   );

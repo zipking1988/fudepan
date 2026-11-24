@@ -36,15 +36,33 @@ export async function listMemberships(
   );
 }
 
-/** user_id → display name for everyone (current or former) in one household. */
+/** user_id → display name and whether the person is still active, for everyone (current or former) in one household. */
+export async function memberDirectory(
+  supabase: SupabaseClient<Database>,
+  householdId: string,
+): Promise<Map<string, { name: string; isActive: boolean }>> {
+  const { data, error } = await supabase
+    .from("household_members")
+    .select("user_id, display_name, is_active")
+    .eq("household_id", householdId);
+  if (error) throw new Error("member_query_failed");
+  return new Map(data.map((m) => [m.user_id, { name: m.display_name, isActive: m.is_active }]));
+}
+
+/**
+ * user_id → display name for everyone (current or former) in one household.
+ * Pass `leftSuffix` (the `member.leftSuffix` text) to mark Former_Members.
+ */
 export async function memberNames(
   supabase: SupabaseClient<Database>,
   householdId: string,
+  options: { leftSuffix?: string } = {},
 ): Promise<Map<string, string>> {
-  const { data, error } = await supabase
-    .from("household_members")
-    .select("user_id, display_name")
-    .eq("household_id", householdId);
-  if (error) throw new Error("member_query_failed");
-  return new Map(data.map((m) => [m.user_id, m.display_name]));
+  const directory = await memberDirectory(supabase, householdId);
+  return new Map(
+    [...directory].map(([userId, m]) => [
+      userId,
+      !m.isActive && options.leftSuffix ? `${m.name} ${options.leftSuffix}` : m.name,
+    ]),
+  );
 }

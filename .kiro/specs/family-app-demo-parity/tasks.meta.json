@@ -1,0 +1,389 @@
+{
+  "pbtResults": {
+    "17.2 Write property test for the sign-in destination": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480114698
+    },
+    "14.4 Write property test for Inline_Actions (pure half)": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480564001
+    },
+    "14.5 Write property test for the Next_Step": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480564917
+    },
+    "14.7 Write property test for the Helpers_Strip contents": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480565916
+    },
+    "14.8 Write property test for the Helpers_Strip order": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480566916
+    },
+    "14.10 Write property test for warm lines": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480568013
+    },
+    "14.12 Write property test for the Latest_Reply": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480568930
+    },
+    "14.14 Write property test for home entries": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480569920
+    },
+    "14.16 Write property test for unknown facts": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480570916
+    },
+    "15.3 Write property test for names": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480968256
+    },
+    "15.4 Write property test for the Warm_Copy dictionary": {
+      "status": "passed",
+      "lastRunTimestamp": 1795480968566
+    },
+    "20.4 Write property test for Inline_Actions (render half)": {
+      "status": "passed",
+      "lastRunTimestamp": 1795481612284
+    },
+    "22.2 Write property test for result messages": {
+      "status": "passed",
+      "lastRunTimestamp": 1795482007923
+    }
+  },
+  "executionHistory": {
+    "14. Add the pure warm home modules and their property tests": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795479904828
+      },
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480656336
+      }
+    ],
+    "17. Open the family home after sign-in and show the login form once": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795479905255
+      },
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480656505
+      }
+    ],
+    "15. Add the Warm_Copy dictionaries and the translator helpers": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480656951
+      },
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481017427
+      }
+    ],
+    "14.1 Create the shared warm home test generators": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480677828
+      }
+    ],
+    "14.2 Implement `src/lib/family/names.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480677888
+      }
+    ],
+    "14.3 Implement `src/lib/family/inline-actions.ts` and `receiverOptionsFrom`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480678740
+      }
+    ],
+    "14.4 Write property test for Inline_Actions (pure half)": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480679249
+      }
+    ],
+    "14.5 Write property test for the Next_Step": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480680663
+      }
+    ],
+    "14.6 Implement `src/lib/family/helpers-strip.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480681709
+      }
+    ],
+    "14.7 Write property test for the Helpers_Strip contents": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480682730
+      }
+    ],
+    "14.8 Write property test for the Helpers_Strip order": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480683656
+      }
+    ],
+    "14.9 Implement the line builders in `src/lib/family/warm-copy.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480684684
+      }
+    ],
+    "14.10 Write property test for warm lines": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480685670
+      }
+    ],
+    "14.11 Implement `src/lib/family/latest-reply.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480686723
+      }
+    ],
+    "14.12 Write property test for the Latest_Reply": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480687671
+      }
+    ],
+    "14.13 Implement `src/lib/family/home-entries.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480689186
+      }
+    ],
+    "14.14 Write property test for home entries": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480689652
+      }
+    ],
+    "14.15 Implement `src/lib/family/unknown-facts.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480691172
+      }
+    ],
+    "14.16 Write property test for unknown facts": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480691229
+      }
+    ],
+    "17.1 Update `src/lib/auth/next-path.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480703673
+      }
+    ],
+    "17.2 Write property test for the sign-in destination": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480703738
+      }
+    ],
+    "17.3 Render one static login form that reads `next` in the browser": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480704053
+      }
+    ],
+    "17.4 Write the login page render test": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480705071
+      }
+    ],
+    "17.5 Write the sign-in redirect test": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480706646
+      }
+    ],
+    "19. Load the home's events and the latest replies": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795480706927
+      },
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481022373
+      }
+    ],
+    "15.1 Create `src/lib/i18n/warm-en.ts` and `src/lib/i18n/warm-ja.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481017588
+      }
+    ],
+    "15.2 Add `withHonorific` and `warmText`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481018263
+      }
+    ],
+    "15.3 Write property test for names": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481019267
+      }
+    ],
+    "15.4 Write property test for the Warm_Copy dictionary": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481020441
+      }
+    ],
+    "19.1 Add `eventsByNote` to `src/lib/family/feed.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481021271
+      }
+    ],
+    "19.3 Implement `src/lib/family/replies.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481022271
+      }
+    ],
+    "16. Checkpoint: warm home pure modules and dictionaries": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481036533
+      }
+    ],
+    "18. Fit the family navigation on one phone row": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481037717
+      },
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481767645
+      }
+    ],
+    "20. Extract the shared CareCard and keep the event page working": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481038144
+      },
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481772237
+      }
+    ],
+    "18.1 Update `src/app/(family)/family-chrome.tsx` and `src/app/(family)/family-nav.tsx`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481767487
+      }
+    ],
+    "18.2 Add the tab and header styles to `src/app/app.css`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481767612
+      }
+    ],
+    "20.1 Move the event actions hook to `src/app/(family)/family/use-event-actions.ts`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481768628
+      }
+    ],
+    "20.2 Build `CareCard` in `src/app/(family)/family/care-card.tsx`": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481770113
+      }
+    ],
+    "20.3 Render `CareCard` in `EventCardView` and pass the new data from the event page": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481770650
+      }
+    ],
+    "20.4 Write property test for Inline_Actions (render half)": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481772169
+      }
+    ],
+    "21. Wire the warm Family_Home": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481775164
+      }
+    ],
+    "22. Announce the Acknowledgment and move focus after a save": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481776166
+      }
+    ],
+    "23. Show what the Care_Recipient sees on the event page": [
+      {
+        "executionId": "bafb5d9c-7a94-4db2-91ae-6d4eff249f0e",
+        "chatSessionId": "sess_7703c1fd-cee4-466d-9139-f5866c8a4247",
+        "timestamp": 1795481776478
+      }
+    ]
+  }
+}

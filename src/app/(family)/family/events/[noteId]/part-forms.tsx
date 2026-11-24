@@ -22,6 +22,16 @@ export function useDeviceTimeZone(): string | null {
   );
 }
 
+/** A stored time question on a non-appointment Part: a pickup deadline, saved as task_due only. */
+export function isStoredTaskDueQuestion(part: Pick<EventPart, "careCategory">, d: MissingDetailView): boolean {
+  return d.storedDetailId !== null && d.kind === "time" && part.careCategory !== "appointment";
+}
+/** A derived deadline question, which keeps the original kind picker. */
+export function isDeadlineQuestion(_part: Pick<EventPart, "careCategory">, d: MissingDetailView): boolean {
+  return d.storedDetailId === null && d.questionCode === "when_is_deadline";
+}
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
 type FormProps = {
   part: EventPart;
   tr: Translator;
@@ -220,25 +230,30 @@ export function AmountForm({ part, tr, runner, actions }: FormProps) {
 }
 
 /** A deadline or reply-by time the person confirms in their own time zone. */
-export function DeadlineForm({ part, tr, runner, actions }: FormProps) {
+export function DeadlineForm({ part, tr, runner, actions, fixedTaskDue = false }: FormProps & { fixedTaskDue?: boolean }) {
   const id = useId();
   const deviceZone = useDeviceTimeZone();
-  const [kind, setKind] = useState<"task_due" | "respond_by">("task_due");
-  const [date, setDate] = useState("");
+  const [pickedKind, setKind] = useState<"task_due" | "respond_by">("task_due");
+  const kind = fixedTaskDue ? "task_due" : pickedKind;
   const [time, setTime] = useState("");
+  const [date, setDate] = useState("");
+  const [hour, setHour] = useState("");
+  const [minute, setMinute] = useState("");
 
   function submit(e: FormEvent) {
     e.preventDefault();
     if (!date) return runner.fail(tr.t("event.missing.needDate"));
-    if (!time) return runner.fail(tr.t("event.missing.needTimeValue"));
+    const when = fixedTaskDue ? (hour && minute ? `${hour}:${minute}` : "") : time;
+    if (!when) return runner.fail(tr.t("event.missing.needTimeValue"));
     if (!deviceZone) return runner.fail(tr.t("event.missing.zoneReading"));
     runner.run(() =>
-      actions.confirmPartTime({ stepId: part.id, kind, localDate: date, localTime: time, timeZone: deviceZone }),
+      actions.confirmPartTime({ stepId: part.id, kind, localDate: date, localTime: when, timeZone: deviceZone }),
     );
   }
 
   return (
     <form onSubmit={submit} className="grid gap-3" noValidate>
+      {!fixedTaskDue && (
       <div className="grid gap-1">
         <label htmlFor={`${id}-kind`} className="app-label">
           {tr.t("event.missing.deadlineKind")}
@@ -254,6 +269,7 @@ export function DeadlineForm({ part, tr, runner, actions }: FormProps) {
           <option value="respond_by">{tr.t("event.missing.deadline.respond_by")}</option>
         </select>
       </div>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-1">
           <label htmlFor={`${id}-date`} className="app-label">
@@ -270,6 +286,54 @@ export function DeadlineForm({ part, tr, runner, actions }: FormProps) {
             disabled={runner.pending}
           />
         </div>
+        {fixedTaskDue ? (
+        <fieldset className="grid gap-1" aria-describedby={`${id}-zone`}>
+          <legend className="app-label">
+            {tr.t("event.missing.time24")} <span className="app-required">*</span>
+          </legend>
+          <div className="flex items-center gap-2">
+            <label htmlFor={`${id}-hour`} className="sr-only">
+              {tr.t("event.missing.hour")}
+            </label>
+            <select
+              id={`${id}-hour`}
+              className={FIELD}
+              value={hour}
+              onChange={(e) => setHour(e.target.value)}
+              required
+              aria-required="true"
+              disabled={runner.pending}
+            >
+              <option value="">{tr.t("event.missing.hour")}</option>
+              {HOURS.map((h) => (
+                <option key={h} value={h}>
+                  {h}
+                </option>
+              ))}
+            </select>
+            <span aria-hidden="true">:</span>
+            <label htmlFor={`${id}-minute`} className="sr-only">
+              {tr.t("event.missing.minute")}
+            </label>
+            <select
+              id={`${id}-minute`}
+              className={FIELD}
+              value={minute}
+              onChange={(e) => setMinute(e.target.value)}
+              required
+              aria-required="true"
+              disabled={runner.pending}
+            >
+              <option value="">{tr.t("event.missing.minute")}</option>
+              {MINUTES.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+        </fieldset>
+        ) : (
         <div className="grid gap-1">
           <label htmlFor={`${id}-time`} className="app-label">
             {tr.t("event.missing.time")} <span className="app-required">*</span>
@@ -286,6 +350,7 @@ export function DeadlineForm({ part, tr, runner, actions }: FormProps) {
             disabled={runner.pending}
           />
         </div>
+        )}
       </div>
       <p id={`${id}-zone`} className="app-hint">
         {deviceZone
@@ -432,18 +497,31 @@ export function ResubmitForm({ part, tr, runner, actions }: FormProps) {
 }
 
 /** Proof: a written note, or a photo or PDF uploaded to private storage. */
+/** Choice value for proof that is not one of the required items. */
+const OTHER_PROOF = "";
+
 export function EvidenceForm({ part, tr, runner, actions }: FormProps) {
   const id = useId();
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const label: MessageKey = "event.evidence.textDefaultLabel";
+  // Completion counts proof by the required item's name, so the proof says which item it is.
+  const attached = new Set(part.evidence.attached.map((e) => e.label));
+  const missing = part.evidence.required.filter((l) => !attached.has(l));
+  // Until the person picks one, the choice follows the first item still missing.
+  const [picked, setPicked] = useState<string | null>(null);
+  const forItem = picked ?? missing[0] ?? OTHER_PROOF;
+  const chosenItem = forItem !== OTHER_PROOF && part.evidence.required.includes(forItem) ? forItem : null;
 
   function submitText(e: FormEvent) {
     e.preventDefault();
     if (!text.trim()) return runner.fail(tr.t("refusal.invalidInput"));
     runner.run(
-      () => actions.addTextEvidence({ stepId: part.id, label: tr.t(label), text }),
-      () => setText(""),
+      () => actions.addTextEvidence({ stepId: part.id, label: chosenItem ?? tr.t(label), text }),
+      () => {
+        setText("");
+        setPicked(null);
+      },
     );
   }
 
@@ -469,12 +547,13 @@ export function EvidenceForm({ part, tr, runner, actions }: FormProps) {
       }
       const done = await actions.completeEvidenceUpload({
         stepId: part.id,
-        label: chosen.name.slice(0, 200) || tr.t(label),
+        label: chosenItem ?? (chosen.name.slice(0, 200) || tr.t(label)),
         objectPath: prepared.objectPath,
       });
       runner.say(done.ok ? { kind: "status", text: tr.t("event.evidence.saved") } : resultText(tr, done));
       if (done.ok) {
         setFile(null);
+        setPicked(null);
         runner.refresh();
       }
     });
@@ -482,6 +561,27 @@ export function EvidenceForm({ part, tr, runner, actions }: FormProps) {
 
   return (
     <div className="grid gap-4">
+      {part.evidence.required.length > 0 && (
+        <div className="grid gap-2">
+          <label htmlFor={`${id}-item`} className="app-label">
+            {tr.t("evidence.which")}
+          </label>
+          <select
+            id={`${id}-item`}
+            className={FIELD}
+            value={forItem}
+            onChange={(e) => setPicked(e.target.value)}
+            disabled={runner.pending}
+          >
+            {part.evidence.required.map((l) => (
+              <option key={l} value={l}>
+                {attached.has(l) ? tr.t("evidence.which.attached", { item: l }) : l}
+              </option>
+            ))}
+            <option value={OTHER_PROOF}>{tr.t("evidence.which.other")}</option>
+          </select>
+        </div>
+      )}
       <form onSubmit={submitText} className="grid gap-2" noValidate>
         <label htmlFor={`${id}-text`} className="app-label">
           {tr.t("event.evidence.textLabel")}

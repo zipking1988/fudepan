@@ -383,43 +383,24 @@ describe("approval decisions", () => {
 });
 
 describe("completion, failure, and reopen", () => {
-  it("commits evidence_required with the missing labels, then completes once attached", () => {
+  it("completes without the listed proof; added proof stays optional and is not logged", () => {
     const model = setup({
       ownerId: "ken",
       legacyStatus: "in_progress",
       storedApprovalState: "approved",
       evidenceRequired: ["receipt", "visit note"],
     });
-    const first = model.complete("ken", "p1", NOW);
-    expect(first).toMatchObject({
-      ok: true,
-      outcome: "evidence_required",
-      missing: ["receipt", "visit note"],
-    });
-    expect(model.getPart("p1")?.legacyStatus).toBe("evidence_required");
-    expect(model.auditLog()[0]).toMatchObject({
-      type: "part.evidence_missing",
-      payload: { missing_count: 2 },
-    });
-
     model.recordEvidence(
       "ken",
       "p1",
       { label: "receipt", kind: "text", text: "paid 1200" },
       after(1),
     );
-    model.recordEvidence(
-      "ken",
-      "p1",
-      { label: "visit note", kind: "file", storagePath: "e/2.pdf" },
-      after(1),
-    );
     expect(JSON.stringify(model.auditLog())).not.toContain("paid 1200");
-    expect(JSON.stringify(model.auditLog())).not.toContain("e/2.pdf");
-    expect(model.complete("ken", "p1", after(2))).toMatchObject({ outcome: "completed" });
+    expect(model.complete("ken", "p1", after(2))).toMatchObject({ ok: true, outcome: "completed" });
+    expect(model.getPart("p1")?.legacyStatus).toBe("completed");
     expect(model.complete("ken", "p1", after(3))).toMatchObject({ code: "part_closed" });
   });
-
   it("validates evidence input and who may add it", () => {
     const model = setup({ ownerId: "ken" });
     expect(

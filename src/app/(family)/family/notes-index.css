@@ -1,0 +1,451 @@
+/*
+ * Notes index (/family without ?note=). The Landing's cream, ink, lavender and navy on the same
+ * 64rem grid as the shared header. Everything is scoped under .nx or to a page that contains it.
+ */
+.pb-shell:has(.nx:not([style*="display"])),
+.app-shell.pb-shell:has(.nx:not([style*="display"])) {
+  background-image: none;
+  background-color: #faf5ec;
+}
+.pb-main:has(.nx:not([style*="display"])) {
+  max-width: 64rem;
+  padding-inline: 0.9rem;
+}
+@media (min-width: 640px) {
+  .pb-main:has(.nx:not([style*="display"])) {
+    padding-inline: 1.25rem;
+  }
+}
+.nx {
+  --nx-ink: #1c1f4a;
+  --nx-text: #34364f;
+  --nx-muted: #55576d;
+  --nx-lavender: #e7e8f8;
+  --nx-paper: #fffdf9;
+  --nx-navy: #262a78;
+  --nx-line: rgb(28 31 74 / 0.12);
+  --nx-shadow: 0 14px 32px -22px rgb(40 36 80 / 0.35), 0 2px 5px -2px rgb(40 36 80 / 0.1);
+  display: grid;
+  gap: 1rem;
+  color: var(--nx-text);
+  font-family: var(--lp-font-text), "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+}
+.nx-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-top: 0.5rem;
+}
+.nx-head__text {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.nx-title {
+  margin: 0;
+  color: var(--nx-ink);
+  font-family: var(--lp-font-display), "Hiragino Maru Gothic ProN", "Hiragino Sans", system-ui, sans-serif;
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.nx-mark {
+  padding: 0 0.04em 0.1em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 16' preserveAspectRatio='none'%3E%3Cpath d='M4 11.5C50 5 120 3.5 196 6.5' fill='none' stroke='%238d88e6' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") 0 96% / 100% 0.36em no-repeat;
+}
+.nx-helper {
+  margin: 0;
+  max-width: 38rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: var(--nx-muted);
+}
+.nx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 2.75rem;
+  padding: 0.55rem 1.3rem;
+  border: 2px solid transparent;
+  border-radius: 0.85rem;
+  background: var(--nx-navy);
+  color: #fff;
+  font-family: var(--lp-font-display), "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.nx-btn:hover {
+  background: #1a1d5c;
+}
+.nx a:focus-visible,
+.nx summary:focus-visible,
+.nx button:focus-visible {
+  outline: 3px solid #6f6bd3;
+  outline-offset: 3px;
+}
+@media (max-width: 480px) {
+  .nx-btn {
+    width: 100%;
+  }
+}
+/* Updates: a quiet disclosure below the title */
+.nx .pb-updates {
+  display: block;
+  margin: 0;
+}
+.nx-updates {
+  border: 1px solid var(--nx-line);
+  border-radius: 0.85rem;
+  background: var(--nx-paper);
+  color: var(--nx-ink);
+}
+.nx-updates > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.4rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.nx-updates__body {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.25rem 1rem 0.9rem;
+}
+.nx-updates__list {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nx-updates__list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+}
+.nx-updates a {
+  color: var(--nx-navy);
+  font-weight: 700;
+  text-underline-offset: 0.2em;
+}
+.nx-updates .app-button {
+  min-height: 2.75rem;
+  border: 2px solid var(--nx-navy);
+  border-radius: 0.85rem;
+  background: transparent;
+  color: var(--nx-navy);
+  font-weight: 700;
+  padding-inline: 1rem;
+}
+.nx-missing {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--nx-line);
+  border-left: 4px solid #6f6bd3;
+  border-radius: 0.85rem;
+  background: var(--nx-paper);
+  color: var(--nx-ink);
+  font-weight: 600;
+}
+/* Layout: list beside the contribution area on wide screens, below it on narrow ones */
+.nx-grid {
+  display: grid;
+  gap: 1rem;
+  align-items: start;
+}
+@media (min-width: 52rem) {
+  .nx-grid:has(.nx-side) {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+  }
+}
+.nx-panel {
+  padding: 0.75rem;
+  border: 1px solid var(--nx-line);
+  border-radius: 1.5rem;
+  background: var(--nx-lavender);
+}
+.nx-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nx-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 5rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--nx-line);
+  border-radius: 1rem;
+  background: var(--nx-paper);
+  box-shadow: var(--nx-shadow);
+  color: inherit;
+  text-decoration: none;
+}
+.nx-row:hover {
+  border-color: rgb(46 42 134 / 0.4);
+  background: #fff;
+}
+.nx-row__thumb {
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+  border: 1px solid var(--nx-line);
+  border-radius: 0.7rem;
+  background: #f3f1ec;
+  object-fit: cover;
+}
+.nx-row__body {
+  display: grid;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+.nx-row__title {
+  color: var(--nx-ink);
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.nx-row__meta,
+.nx-row__progress {
+  color: var(--nx-muted);
+  font-size: 0.9375rem;
+}
+.nx-row__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+}
+.nx-row__chev {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--nx-lavender);
+  color: var(--nx-navy);
+}
+.nx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+.nx-chip--reading {
+  background: #e3e3f8;
+  color: #2e2a86;
+}
+.nx-chip--needsReview {
+  background: #f3e6c8;
+  color: #5c3d0b;
+}
+.nx-chip--done {
+  background: #e9f0e2;
+  color: #2f5628;
+}
+.nx-chip--failed {
+  background: #f6e1da;
+  color: #8a3a22;
+}
+.nx-bar {
+  display: block;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: var(--nx-lavender);
+  overflow: hidden;
+}
+.nx-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #3c6b33;
+}
+/* Empty state */
+.nx-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  border-radius: 1rem;
+  background: var(--nx-paper);
+  text-align: center;
+}
+.nx-empty p {
+  margin: 0;
+  max-width: 30rem;
+}
+.nx-empty__title {
+  margin: 0;
+  color: var(--nx-ink);
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+.nx-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 999px;
+  background: var(--nx-lavender);
+  color: var(--nx-navy);
+}
+/* Contribution area */
+.nx-side {
+  display: grid;
+  gap: 1rem;
+}
+.nx-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--nx-line);
+  border-radius: 1.25rem;
+  background: var(--nx-paper);
+  box-shadow: var(--nx-shadow);
+}
+.nx-card__title {
+  margin: 0;
+  color: var(--nx-ink);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.nx-card__for {
+  display: block;
+  color: var(--nx-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.nx-number {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--nx-ink);
+}
+.nx-number__value {
+  font-size: 2.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.nx-number__unit {
+  font-weight: 700;
+}
+.nx-hint {
+  margin: 0;
+  color: var(--nx-muted);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.nx-disclosure > summary {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--nx-navy);
+  font-weight: 700;
+  cursor: pointer;
+}
+.nx-done {
+  display: grid;
+  gap: 0.75rem;
+  max-height: 22rem;
+  overflow: auto;
+  padding-top: 0.25rem;
+}
+.nx-done__note {
+  margin: 0 0 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.nx-done ul {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nx-done a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  color: var(--nx-navy);
+  font-weight: 600;
+  text-underline-offset: 0.2em;
+}
+.nx-rank {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.nx-rank li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.7rem;
+  background: var(--nx-lavender);
+}
+.nx-rank__me {
+  outline: 2px solid #6f6bd3;
+}
+.nx-rank__pos {
+  color: var(--nx-navy);
+  font-size: 0.9375rem;
+  font-weight: 800;
+}
+.nx-rank__name {
+  color: var(--nx-ink);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.nx-rank__count {
+  color: var(--nx-muted);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.nx-updates > summary {
+  list-style: none;
+}
+.nx-updates > summary::-webkit-details-marker {
+  display: none;
+}
+.nx-updates__chev {
+  flex: none;
+  margin-left: auto;
+  transition: transform 0.15s ease;
+}
+.nx-updates[open] .nx-updates__chev {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nx-updates__chev {
+    transition: none;
+  }
+}
+.nx-row__reason {
+  color: var(--nx-ink);
+  font-size: 0.9375rem;
+  font-weight: 700;
+}

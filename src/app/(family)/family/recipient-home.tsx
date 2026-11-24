@@ -3,7 +3,8 @@ import { getSharedCareEvent } from "@/lib/care/queries";
 import type { FamilyContext } from "@/lib/family/session-core";
 import type { SharedCareEvent } from "@/lib/family/shared-care-event";
 import type { getSession } from "@/lib/auth/session";
-import { RecipientHomeView } from "./recipient-view";
+import { createTranslator } from "@/lib/i18n/messages";
+import { PostcardList } from "./playful/postcard";
 
 const RECIPIENT_EVENT_LIMIT = 10;
 
@@ -21,5 +22,12 @@ export async function RecipientHome({
   const events = loaded.filter(
     (e): e is SharedCareEvent => e !== null && e.householdId === context.householdId,
   );
-  return <RecipientHomeView events={events} language={context.language} recipientName={context.displayName} />;
+  return (
+    <PostcardList
+      events={events}
+      language={context.language}
+      householdId={context.householdId}
+      tr={createTranslator(context.language)}
+    />
+  );
 }

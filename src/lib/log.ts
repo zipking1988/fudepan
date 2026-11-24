@@ -28,6 +28,26 @@ export type LogField = (typeof LOG_FIELDS)[number];
 export type LogFields = Partial<Record<LogField, string | number | boolean | null | undefined>>;
 export type Logger = (level: LogLevel, event: string, fields?: LogFields) => void;
 
+/**
+ * Event names for membership flows. They pass only `household_id`, `user_id`, `reason`, `code`,
+ * and `count`. Tokens, emails, and names are never passed.
+ */
+export const MEMBERSHIP_LOG_EVENTS = [
+  "membership.sign_up_failed",
+  "membership.household_created",
+  "membership.invite_created",
+  "membership.invite_revoked",
+  "membership.invite_previewed",
+  "membership.invite_accepted",
+  "membership.accept_refused",
+  "membership.role_changed",
+  "membership.member_deactivated",
+  "membership.member_left",
+  "membership.display_name_changed",
+  "membership.refused",
+  "membership.error",
+] as const;
+export type MembershipLogEvent = (typeof MEMBERSHIP_LOG_EVENTS)[number];
 const SAFE_STRING = /^[A-Za-z0-9_.:-]{1,64}$/;
 const SAFE_EVENT = /^[a-z][a-z0-9_.]{0,63}$/;
 
