@@ -9,6 +9,7 @@ import { requireFamilyContext } from "@/lib/family/session";
 import { portraitUrl, portraitVersions } from "@/lib/portraits/service";
 import { isUuid } from "@/lib/ids";
 import { createTranslator } from "@/lib/i18n/messages";
+import { getDemoAccount } from "@/app/login/demo-account";
 import { FeedPoller, MarkSeenButton } from "./feed-client";
 import { HomeBoard } from "./playful/home-board";
 import { NotesList } from "./notes-list";
@@ -153,6 +154,7 @@ async function FamilyHome({ searchParams }: { searchParams: Promise<{ note?: str
         updates={listUpdates}
         viewerId={ctx.memberId}
         recipientName={options.find((m) => m.role === "care_recipient")?.displayName ?? null}
+        isDemo={getDemoAccount() !== null}
       />
     );
   }

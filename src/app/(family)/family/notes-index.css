@@ -197,8 +197,8 @@
 }
 .nx-row__thumb {
   flex: none;
-  width: 4rem;
-  height: 4rem;
+  width: 5.5rem;
+  height: 5.5rem;
   border: 1px solid var(--nx-line);
   border-radius: 0.7rem;
   background: #f3f1ec;
@@ -448,4 +448,40 @@
   color: var(--nx-ink);
   font-size: 0.9375rem;
   font-weight: 700;
+}
+
+/* Demo banner */
+.nx-demo-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  border-radius: 0.9rem;
+  background: var(--nx-lavender);
+  color: var(--nx-navy);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.nx-demo-banner__icon {
+  font-size: 0.85rem;
+  flex: none;
+}
+
+/* Loading spinner for note row */
+.nx-spinner {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: nx-spin 0.7s linear infinite;
+  opacity: 0.6;
+}
+@keyframes nx-spin {
+  to { transform: rotate(360deg); }
+}
+.nx-row--loading {
+  opacity: 0.75;
+  pointer-events: none;
 }

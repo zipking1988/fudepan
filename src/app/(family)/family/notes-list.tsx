@@ -6,6 +6,7 @@ import { notesTally } from "@/lib/family/notes-tally";
 import type { SharedCareEvent } from "@/lib/family/shared-care-event";
 import { createTranslator, type Language } from "@/lib/i18n/messages";
 import { LocalTime } from "./local-time";
+import { NoteRowLink } from "./note-row-link";
 import { Icon } from "./playful/ui";
 import "./notes-index.css";
 const STATUS_ICON = {
@@ -26,6 +27,7 @@ export function NotesList({
   updates = null,
   viewerId = "",
   recipientName = null,
+  isDemo = false,
 }: {
   events: readonly SharedCareEvent[];
   language: Language;
@@ -34,6 +36,8 @@ export function NotesList({
   updates?: ReactNode;
   viewerId?: string;
   recipientName?: string | null;
+  /** Shows a demo banner at the top when true. */
+  isDemo?: boolean;
 }) {
   const tr = createTranslator(language);
   const rows: NoteRow[] = events.map(noteRow);
@@ -54,6 +58,12 @@ export function NotesList({
           <Icon name="camera" size={22} /> {tr.t("pb.notes.upload")}
         </Link>
       </header>
+      {isDemo && (
+        <div className="nx-demo-banner" role="note">
+          <span className="nx-demo-banner__icon" aria-hidden="true">✦</span>
+          {tr.t("pb.notes.demoBanner")}
+        </div>
+      )}
       {updates}
       {missingNote && (
         <p role="status" className="nx-missing">
@@ -77,10 +87,9 @@ export function NotesList({
                 const pct = r.total > 0 ? Math.round((r.done / r.total) * 100) : 0;
                 return (
                   <li key={r.noteId}>
-                    <Link
+                    <NoteRowLink
                       href={`/family?note=${r.noteId}`}
-                      className="nx-row"
-                      aria-label={tr.t("pb.notes.open", { title })}
+                      ariaLabel={tr.t("pb.notes.open", { title })}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element -- private route, checked on every request */}
                       <img
@@ -88,8 +97,8 @@ export function NotesList({
                         alt={tr.t("pb.notes.thumbAlt")}
                         className="nx-row__thumb"
                         loading="lazy"
-                        width={64}
-                        height={64}
+                        width={88}
+                        height={88}
                       />
                       <span className="nx-row__body">
                         <span className="nx-row__title">{title}</span>
@@ -118,10 +127,7 @@ export function NotesList({
                           </span>
                         )}
                       </span>
-                      <span className="nx-row__chev" aria-hidden="true">
-                        <Icon name="chevronRight" size={22} />
-                      </span>
-                    </Link>
+                    </NoteRowLink>
                   </li>
                 );
               })}

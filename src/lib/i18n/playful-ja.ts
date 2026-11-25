@@ -158,6 +158,7 @@ export const playfulJa: Record<keyof typeof playfulEn, string> = {
   "pb.members.invites.open": "招待リンクを開く",
   "pb.members.photoAlt": "{name}の写真",
   "pb.nav.notes": "メモ",
+  "pb.notes.demoBanner": "これはデモです。ご自由にお試しください。",
   "pb.notes.title": "メモ",
   "pb.notes.intro": "ご家族がアップロードしたメモの一覧です。開くと、やることボードが見られます。",
   "pb.notes.upload": "メモをアップロード",

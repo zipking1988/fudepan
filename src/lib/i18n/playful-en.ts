@@ -156,6 +156,7 @@ export const playfulEn = {
   "pb.members.invites.open": "Open invite links",
   "pb.members.photoAlt": "Photo of {name}",
   "pb.nav.notes": "Notes",
+  "pb.notes.demoBanner": "This is a demo \u2014 feel free to try everything.",
   "pb.notes.title": "Notes",
   "pb.notes.intro": "Every note your family uploaded. Open one to see its task board.",
   "pb.notes.upload": "Upload a note",
