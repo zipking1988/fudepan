@@ -7,6 +7,7 @@ import type { SharedCareEvent } from "@/lib/family/shared-care-event";
 import { createTranslator, type Language } from "@/lib/i18n/messages";
 import { LocalTime } from "./local-time";
 import { NoteRowLink } from "./note-row-link";
+import { DemoResetButton } from "./demo-reset-button";
 import { Icon } from "./playful/ui";
 import "./notes-index.css";
 const STATUS_ICON = {
@@ -61,7 +62,12 @@ export function NotesList({
       {isDemo && (
         <div className="nx-demo-banner" role="note">
           <span className="nx-demo-banner__icon" aria-hidden="true">✦</span>
-          {tr.t("pb.notes.demoBanner")}
+          <span className="nx-demo-banner__text">{tr.t("pb.notes.demoBanner")}</span>
+          <DemoResetButton
+            label={tr.t("pb.notes.demoReset")}
+            resetLabel={tr.t("pb.notes.demoResetting")}
+            doneLabel={tr.t("pb.notes.demoResetDone")}
+          />
         </div>
       )}
       {updates}
