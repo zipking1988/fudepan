@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Cream background pill -->
+  <rect width="32" height="32" rx="8" fill="#faf5ec"/>
+  <!-- "F" in navy ink, matching the wordmark font weight -->
+  <text
+    x="16"
+    y="24"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="24"
+    font-weight="900"
+    fill="#1c1f4a"
+    text-anchor="middle"
+    dominant-baseline="auto"
+    letter-spacing="-0.5"
+  >F</text>
+  <!-- Brush ticks — three short strokes, top-right, matching BrushTicks icon -->
+  <g stroke="#1c1f4a" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.75">
+    <path d="M22 5 L20.5 9"/>
+    <path d="M25 7 L23 10"/>
+    <path d="M27 10 L25.5 13"/>
+  </g>
+</svg>

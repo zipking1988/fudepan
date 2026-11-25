@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   title: "Fudepan — Turn handwritten care notes into tasks your family won’t miss",
   description:
     "Take a photo of a handwritten note. Fudepan drafts the care tasks, asks about anything missing, and gives every task a person and a deadline. Your family approves anything important.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
+  },
 };
 
 export const viewport: Viewport = {
