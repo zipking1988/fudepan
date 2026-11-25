@@ -14,7 +14,7 @@ import {
 } from "@/lib/notes/upload-state";
 import { NOTE_SIGNATURE_BYTES, checkNoteFile } from "@/lib/notes/validation";
 import { createClient } from "@/lib/supabase/client";
-import { CaptureFormView } from "./capture-form-view";
+import { CaptureFormView, SAMPLE_NOTE } from "./capture-form-view";
 
 /** How long "Sent to your family" stays on screen before the event opens. */
 const REDIRECT_DELAY_MS = 3000;
@@ -135,11 +135,24 @@ export function CaptureForm({ householdId, language }: { householdId: string; la
     }
   }
 
+  /** Loads the sample note as if it had been chosen, so it shows the same preview before anything is sent. */
+  async function handleSample() {
+    try {
+      const response = await fetch(SAMPLE_NOTE.src);
+      if (!response.ok) throw new Error("sample unavailable");
+      const blob = await response.blob();
+      await handlePick(new File([blob], SAMPLE_NOTE.name, { type: SAMPLE_NOTE.type }));
+    } catch {
+      dispatch({ type: "submit" });
+      dispatch({ type: "failed", error: { code: "sample_failed", message: "The sample note could not be loaded." } });
+    }
+  }
   return (
     <CaptureFormView
       state={state}
       tr={tr}
       onPick={(file) => void handlePick(file)}
+      onSample={() => void handleSample()}
       onSubmit={handleSubmit}
       dragging={dragging}
       onDragState={setDragging}

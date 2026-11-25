@@ -6,6 +6,8 @@ import type { Translator } from "@/lib/i18n/messages";
 import { Icon, Tape } from "../playful/ui";
 
 export type CaptureFile = { name: string; size: number };
+/** A made-up handwritten note in public/, so visitors can try the real reading without their own photo. */
+export const SAMPLE_NOTE = { src: "/landing/handwritten-note-ja.png", name: "sample-note.png", type: "image/png" } as const;
 
 /** Problems with the photo itself. Sending it again would fail the same way. */
 const PHOTO_PROBLEMS = new Set(["no_file", "empty", "too_large", "unsupported_type", "not_an_image", "unreadable"]);
@@ -13,6 +15,7 @@ const PHOTO_PROBLEMS = new Set(["no_file", "empty", "too_large", "unsupported_ty
 /** The message shown for an error: the photo's own problem, or a translated plain sentence. */
 export function captureErrorMessage(error: { code: string; message: string }, tr: Translator): string {
   if (PHOTO_PROBLEMS.has(error.code)) return error.message;
+  if (error.code === "sample_failed") return tr.t("pb.capture.sampleFailed");
   if (error.code === "signed_out") return tr.t("capture.signedOut");
   if (error.code === "not_allowed" || error.code === "not_member") return tr.t("capture.notAllowed");
   return tr.t("capture.sendFailed");
@@ -21,6 +24,8 @@ export function captureErrorMessage(error: { code: string; message: string }, tr
 export type CaptureViewHandlers = {
   /** One chosen, captured or dropped photo (or null). The same path for every way of choosing. */
   onPick?: (file: File | null) => void;
+  /** Use the sample note instead of a photo of your own. It then goes through the same preview and send. */
+  onSample?: () => void;
   onSubmit?: (event: FormEvent<HTMLFormElement>) => void;
   onReset?: () => void;
   onDragState?: (active: boolean) => void;
@@ -35,6 +40,7 @@ export function CaptureFormView({
   state,
   tr,
   onPick,
+  onSample,
   onSubmit,
   onReset,
   onDragState,
@@ -165,6 +171,28 @@ export function CaptureFormView({
                 <p className="pb-inbox__limits">{tr.t("pb.capture.limits")}</p>
               </div>
             </div>
+          </div>
+        )}
+
+        {!hasPreview && (
+          <div className="pb-sample">
+            {/* eslint-disable-next-line @next/next/no-img-element -- small static thumbnail from public/ */}
+            <img src={SAMPLE_NOTE.src} alt="" className="pb-sample__thumb" width={96} height={64} />
+            <div className="pb-sample__text">
+              <p className="pb-sample__title">{tr.t("pb.capture.sampleTitle")}</p>
+              <p id="capture-sample-hint" className="pb-sample__hint">
+                {tr.t("pb.capture.sampleHint")}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="pb-btn pb-btn--outline pb-sample__btn"
+              aria-describedby="capture-sample-hint"
+              disabled={busy}
+              onClick={onSample}
+            >
+              {tr.t("pb.capture.sample")}
+            </button>
           </div>
         )}
 

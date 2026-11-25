@@ -109,4 +109,12 @@ describe("capture screen markup", () => {
       expect(render({ status: s, file } as UploadState<CaptureFile>)).not.toContain("Sent to your family");
     }
   });
+  it("offers the sample note as a plain button before a photo is chosen, in both languages", () => {
+    const html = render({ status: "idle", file: null });
+    expect(html).toMatch(/<button type="button" class="pb-btn pb-btn--outline pb-sample__btn" aria-describedby="capture-sample-hint">Use the sample note<\/button>/);
+    expect(html).toContain("made-up family");
+    expect(html).toContain('src="/landing/handwritten-note-ja.png"');
+    expect(render({ status: "idle", file: null }, null, false, ja)).toContain("サンプルのメモを使う");
+    expect(render({ status: "idle", file: photo }, "blob:x")).not.toContain("pb-sample");
+  });
 });
