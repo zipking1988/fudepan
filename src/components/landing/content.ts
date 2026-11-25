@@ -93,6 +93,8 @@ export type LandingCopy = {
     /** The real capture page, outside the fictional example. */
     actual: { link: string };
   };
+  /** A short four-step overview above the example. Details are in `how`. */
+  flow: { title: string; steps: { title: string; text: string }[]; more: string };
   how: {
     title: string;
     steps: { title: string; text: string }[];
@@ -302,6 +304,16 @@ export const COPY: Record<Language, LandingCopy> = {
       },
       actual: { link: "自分のメモで始める（ログインが必要です）" },
     },
+    flow: {
+      title: "Fudepanのしくみ",
+      steps: [
+        { title: "メモを撮る", text: "手書きのメモを、スマホで写真に撮ります。" },
+        { title: "やることに分ける", text: "メモを読んで、やることのリストにします。書いていないことは推測せず、「未確認」と出します。" },
+        { title: "家族で分担する", text: "だれがやるかは、家族が自分で決めます。" },
+        { title: "大事なことは人が確認", text: "通院や支払いなどは、主介護者が確認するまで「完了」にできません。" },
+      ],
+      more: "くわしい使い方",
+    },
     how: {
       title: "使い方",
       steps: [
@@ -391,6 +403,16 @@ export const COPY: Record<Language, LandingCopy> = {
       fictional: "A made-up family. You can act as Misa, Kenta, or Yui. Nothing is saved or sent.",
       fullDemo: null,
       actual: { link: "Start with your own note (log in required)" },
+    },
+    flow: {
+      title: "How Fudepan works",
+      steps: [
+        { title: "Take a photo", text: "Take a photo of the handwritten note with your phone." },
+        { title: "Split into tasks", text: "It reads the note and makes a task list. It never guesses what the note doesn't say. It shows “not confirmed”." },
+        { title: "Share the tasks", text: "Your family decides who does what." },
+        { title: "A person confirms what matters", text: "Clinic visits, payments and similar tasks can't be marked as done until the primary caregiver confirms them." },
+      ],
+      more: "More about how it works",
     },
     how: {
       title: "How it works",

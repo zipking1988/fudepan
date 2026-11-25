@@ -85,3 +85,16 @@ describe("Built with Kiro", () => {
     expect(COPY.en.how.kiro.honest).toMatch(/does not read notes with AI or send notifications/);
   });
 });
+
+describe("flow overview", () => {
+  it.each(["ja", "en"] as const)("%s: shows four steps above the example, linking to the details", (lang) => {
+    const html = render(lang);
+    const { flow } = COPY[lang];
+    expect(flow.steps).toHaveLength(4);
+    const start = html.indexOf('class="lp-flow"');
+    expect(start).toBeGreaterThan(-1);
+    expect(start).toBeLessThan(html.indexOf('class="lp-app"'));
+    for (const step of flow.steps) expect(html).toContain(esc(step.title));
+    expect(html).toMatch(new RegExp(`href="#how" class="lp-flow__more">${esc(flow.more)}`));
+  });
+});

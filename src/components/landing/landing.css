@@ -1649,6 +1649,95 @@
   font-size: 0.95rem;
 }
 
+/* Four-step overview above the example */
+.lp-flow {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  margin: 2rem 0;
+}
+.lp-flow__title {
+  color: var(--lp-ink);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+.lp-flow__steps {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lp-flow__step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  column-gap: 0.8rem;
+  row-gap: 0.2rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--lp-line);
+  border-radius: 1.25rem;
+  background: var(--lp-paper);
+}
+.lp-flow__icon {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background: var(--lp-lavender);
+  color: var(--lp-navy);
+}
+.lp-flow__icon .lp-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+.lp-flow__stepTitle {
+  color: var(--lp-ink);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.lp-flow__num {
+  margin-right: 0.25rem;
+}
+.lp-flow__step p {
+  color: var(--lp-text);
+  font-size: 0.95rem;
+}
+.lp-flow__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--lp-navy);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+}
+.lp-flow__more .lp-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+@media (min-width: 640px) {
+  .lp-flow__steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1000px) {
+  .lp-flow__steps {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .lp-flow__step {
+    grid-template-columns: 1fr;
+    row-gap: 0.4rem;
+    padding: 1.1rem 1.2rem;
+  }
+  .lp-flow__icon {
+    grid-row: auto;
+  }
+}
+
 /* How it works */
 
 .lp-how {

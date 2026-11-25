@@ -5,7 +5,7 @@ import type { Language } from "@/lib/i18n/format";
 import { CareExample } from "./care-example";
 import { COPY, EXAMPLE_COPY, IMAGE_SIZE, IMAGES, LINKS } from "./content";
 import type { PersonId } from "./example";
-import { ArrowDown, BrushTicks, Camera, Chevron, Globe, Hourglass, Shield } from "./icons";
+import { ArrowDown, BrushTicks, Camera, Chevron, Globe, Hourglass, Shield, Sparkle, Heart } from "./icons";
 import { landingFontClasses } from "./landing-fonts";
 import { Wordmark } from "./wordmark";
 
@@ -133,6 +133,7 @@ function ExampleSection({ lang, demoConfigured }: { lang: Language; demoConfigur
           <p className="lp-example__lede">{example.lede}</p>
           <p className="lp-example__fictional">{example.fictional}</p>
         </header>
+        <Flow lang={lang} />
         <CareExample lang={lang} demoConfigured={demoConfigured} />
         <div className="lp-example__cta">
           {/* The full /demo is in Japanese, so only the Japanese landing links to it. */}
@@ -158,6 +159,39 @@ function ExampleSection({ lang, demoConfigured }: { lang: Language; demoConfigur
   );
 }
 
+const FLOW_ICONS = [Camera, Sparkle, Heart, Shield];
+/** Four steps in one glance, above the example. The details are in "How it works" below. */
+function Flow({ lang }: { lang: Language }) {
+  const { flow } = COPY[lang];
+  return (
+    <div className="lp-flow">
+      <h3 className="lp-flow__title">{flow.title}</h3>
+      <ol className="lp-flow__steps">
+        {flow.steps.map((step, i) => {
+          const StepIcon = FLOW_ICONS[i];
+          return (
+            <li key={step.title} className="lp-flow__step">
+              <span className="lp-flow__icon">
+                <StepIcon />
+              </span>
+              <h4 className="lp-flow__stepTitle">
+                <span className="lp-flow__num" aria-hidden="true">
+                  {i + 1}.
+                </span>
+                {step.title}
+              </h4>
+              <p>{step.text}</p>
+            </li>
+          );
+        })}
+      </ol>
+      <a href={LINKS.how} className="lp-flow__more">
+        {flow.more}
+        <ArrowDown />
+      </a>
+    </div>
+  );
+}
 function HowItWorks({ lang }: { lang: Language }) {
   const { how } = COPY[lang];
   return (
